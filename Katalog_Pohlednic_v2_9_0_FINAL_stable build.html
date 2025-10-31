@@ -1,0 +1,4760 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Katalog Pohlednic v2.9.0 - Modern Edition</title>
+  
+  <!-- jsPDF Library for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Modern Colors */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f9fc;
+      --bg-card: #ffffff;
+      --text-primary: #1a1d29;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,0.12);
+      --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+      
+      /* Gradients */
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --warning-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      
+      /* Accent Colors */
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-orange: #f59e0b;
+      
+      /* Period Colors */
+      --period-pre1945: #3b82f6;
+      --period-communist: #ef4444;
+      --period-post1989: #10b981;
+      --period-unknown: #6b7280;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f1419;
+      --bg-secondary: #1a1f29;
+      --bg-card: #1e2532;
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --border-color: #374151;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ============================================================ */
+    /* HEADER */
+    /* ============================================================ */
+
+    header {
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .version-badge {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-secondary);
+    }
+
+    .btn-success {
+      background: var(--success-gradient);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ============================================================ */
+    /* STATS BAR */
+    /* ============================================================ */
+
+    .stats-bar {
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+
+    .stats-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .stat-icon {
+      font-size: 1.25rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ============================================================ */
+    /* FILTERS */
+    /* ============================================================ */
+
+    .filters-section {
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.5rem 0;
+    }
+
+    .filters-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--accent-purple);
+      background: var(--bg-secondary);
+    }
+
+    .filter-chip.active {
+      background: var(--primary-gradient);
+      color: white;
+      border-color: transparent;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.625rem 1rem 0.625rem 2.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+
+    /* ============================================================ */
+    /* GALLERY */
+    /* ============================================================ */
+
+    .gallery-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .postcard-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .postcard-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .postcard-image-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/2;
+      overflow: hidden;
+      background: var(--bg-secondary);
+    }
+
+    .postcard-image-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(20px);
+      transform: scale(1.1);
+      opacity: 0.6;
+    }
+
+    .postcard-image {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 1;
+    }
+
+    .period-badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-md);
+      z-index: 2;
+    }
+
+    .period-pre1945 {
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+    }
+
+    .period-communist {
+      background: rgba(239, 68, 68, 0.9);
+      color: white;
+    }
+
+    .period-post1989 {
+      background: rgba(16, 185, 129, 0.9);
+      color: white;
+    }
+
+    .period-unknown {
+      background: rgba(107, 114, 128, 0.9);
+      color: white;
+    }
+
+    .postcard-content {
+      padding: 1rem;
+    }
+
+    .postcard-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .postcard-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+    }
+
+    .postcard-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+    }
+
+    .tag-chip {
+      padding: 0.25rem 0.625rem;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* ============================================================ */
+    /* FAB (Floating Action Button) */
+    /* ============================================================ */
+
+    .fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      box-shadow: var(--shadow-xl);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 50;
+    }
+
+    .fab:hover {
+      transform: scale(1.1) rotate(90deg);
+      box-shadow: 0 30px 60px -12px rgba(102, 126, 234, 0.4);
+    }
+
+    /* ============================================================ */
+    /* MODALS */
+    /* ============================================================ */
+
+    dialog {
+      border: none;
+      border-radius: 16px;
+      padding: 0;
+      max-width: 90vw;
+      max-height: 90vh;
+      box-shadow: var(--shadow-xl);
+      background: var(--bg-card);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      max-height: calc(90vh - 150px);
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    /* ============================================================ */
+    /* FORM ELEMENTS */
+    /* ============================================================ */
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ============================================================ */
+    /* TABS */
+    /* ============================================================ */
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tab-button {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-button.active {
+      color: var(--accent-purple);
+      border-bottom-color: var(--accent-purple);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ============================================================ */
+    /* IMAGE UPLOAD */
+    /* ============================================================ */
+
+    .image-upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      background: var(--bg-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .image-upload-area:hover {
+      border-color: var(--accent-purple);
+      background: var(--bg-card);
+    }
+
+    .image-upload-area.has-image {
+      border-style: solid;
+      padding: 0;
+      background: none;
+    }
+
+    .upload-icon {
+      font-size: 3rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .image-preview {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .image-sides {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    /* ============================================================ */
+    /* OVERVIEW SECTION */
+    /* ============================================================ */
+
+    .overview-grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+/* === Detail (wide layout) ================================================== */
+@media (min-width: 1100px) {
+  #detailModal .modal-body { width: 100%; }
+  #detailModal .overview-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    grid-template-areas:
+      "images basic"
+      "images extra"
+      "images tech"
+      "images tags"
+      "images notes";
+    align-items: start;
+    gap: 1.25rem 1.5rem;
+  }
+  #sectionImages { grid-area: images; }
+  #sectionBasic { grid-area: basic; }
+  #sectionExtra { grid-area: extra; }
+  #sectionTech  { grid-area: tech; }
+  #sectionTags  { grid-area: tags; }
+  #sectionNotes { grid-area: notes; }
+  #detailModal dialog, #detailModal { max-width: 1200px; }
+}
+
+.uid-chip {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  user-select: all;
+  cursor: pointer;
+}
+.uid-chip:hover { box-shadow: var(--shadow-sm); }
+
+
+    .overview-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .overview-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .overview-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .overview-field:last-child {
+      border-bottom: none;
+    }
+
+    .overview-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      flex-shrink: 0;
+      margin-right: 1rem;
+    }
+
+    .overview-value {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .overview-value.empty {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .overview-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+      justify-content: flex-end;
+    }
+
+    .overview-tag {
+      padding: 0.25rem 0.625rem;
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .overview-images {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .overview-image-container {
+      text-align: center;
+    }
+
+    .overview-image-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .overview-image {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      cursor: zoom-in;
+      transition: all 0.2s;
+    }
+
+    .overview-image:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-md);
+    }
+
+    .uid-display {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      padding: 0.375rem 0.625rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      user-select: all;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .uid-display:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent-purple);
+    }
+
+    /* ============================================================ */
+    /* TAGS INPUT */
+    /* ============================================================ */
+
+    .tags-input-wrapper {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+      min-height: 44px;
+    }
+
+    .tags-input-wrapper:focus-within {
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .tag-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .tag-remove {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+
+    .tag-remove:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .tag-input {
+      border: none;
+      background: none;
+      outline: none;
+      flex: 1;
+      min-width: 100px;
+      padding: 0.25rem;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+
+    /* ============================================================ */
+    /* HISTORY TIMELINE */
+    /* ============================================================ */
+
+    .history-timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .history-timeline::before {
+      content: '';
+      position: absolute;
+      left: 0.5rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-color);
+    }
+
+    .history-item {
+      position: relative;
+      padding: 0.75rem 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .history-item::before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 1rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-purple);
+      border: 2px solid var(--bg-card);
+    }
+
+    .history-timestamp {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+
+    .history-action {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* ============================================================ */
+    /* TOAST NOTIFICATIONS */
+    /* ============================================================ */
+
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      min-width: 300px;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow-xl);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideInToast 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toast.success {
+      background: var(--success-gradient);
+      color: white;
+    }
+
+    .toast.error {
+      background: var(--danger-gradient);
+      color: white;
+    }
+
+    .toast.info {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    @keyframes slideInToast {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOutToast {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    .toast.removing {
+      animation: slideOutToast 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ============================================================ */
+    /* ONBOARDING */
+    /* ============================================================ */
+
+    .onboarding {
+      max-width: 600px;
+      margin: 4rem auto;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .onboarding-icon {
+      font-size: 5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .onboarding-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .onboarding-text {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .onboarding-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ============================================================ */
+    /* LOADING */
+    /* ============================================================ */
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ============================================================ */
+    /* RESPONSIVE */
+    /* ============================================================ */
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header-actions {
+        justify-content: stretch;
+      }
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+      }
+
+      .fab {
+        bottom: 1rem;
+        right: 1rem;
+        width: 56px;
+        height: 56px;
+        font-size: 1.75rem;
+      }
+
+      .overview-images {
+        grid-template-columns: 1fr;
+      }
+
+      dialog {
+        max-width: 95vw;
+        max-height: 95vh;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================================ */
+    /* PDF EXPORT MODAL */
+    /* ============================================================ */
+
+    .pdf-export-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .pdf-export-section-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .pdf-export-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .pdf-option-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .pdf-radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .pdf-radio-option:hover {
+      border-color: var(--accent-purple);
+      background: var(--bg-secondary);
+    }
+
+    .pdf-radio-option input[type="radio"] {
+      cursor: pointer;
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+
+    .pdf-radio-option.selected {
+      border-color: var(--accent-purple);
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .pdf-checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pdf-checkbox-option:hover {
+      border-color: var(--accent-purple);
+      background: var(--bg-secondary);
+    }
+
+    .pdf-checkbox-option input[type="checkbox"] {
+      cursor: pointer;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .pdf-checkbox-option label {
+      cursor: pointer;
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .pdf-select-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+    }
+
+    .pdf-select-wrapper label {
+      font-weight: 500;
+      min-width: 100px;
+      color: var(--text-primary);
+    }
+
+    .pdf-select-wrapper select {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .pdf-modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pdf-progress-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      gap: 1.5rem;
+    }
+
+    .pdf-progress-content {
+      background: var(--bg-card);
+      padding: 2rem;
+      border-radius: 16px;
+      min-width: 400px;
+      max-width: 500px;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .pdf-progress-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .pdf-progress-status {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+
+    .pdf-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .pdf-progress-fill {
+      height: 100%;
+      background: var(--primary-gradient);
+      transition: width 0.3s ease;
+      border-radius: 4px;
+    }
+
+    .pdf-progress-percent {
+      text-align: center;
+      font-weight: 600;
+      color: var(--accent-purple);
+    }
+
+    /* ============================================================ */
+    /* UTILITIES */
+    /* ============================================================ */
+
+    .hidden {
+      display: none !important;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 1rem; }
+
+    /* ============================================================ */
+    /* THEME TOGGLE */
+    /* ============================================================ */
+
+    .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.625rem 1rem;
+      border-radius: 8px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-secondary);
+      transform: scale(1.05);
+    }
+
+    /* ============================================================ */
+    /* LIGHTBOX */
+    /* ============================================================ */
+
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      cursor: zoom-out;
+    }
+
+    .lightbox.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .lightbox-content {
+      max-width: 95vw;
+      max-height: 95vh;
+      position: relative;
+    }
+
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 95vh;
+      object-fit: contain;
+      cursor: default;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 48px;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(0, 0, 0, 0.9);
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ============================================================ */
+    /* BATCH MODE */
+    /* ============================================================ */
+
+    .postcard-checkbox {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      width: 28px;
+      height: 28px;
+      z-index: 10;
+      cursor: pointer;
+      accent-color: var(--accent-purple);
+    }
+
+    .batch-actions-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 2px solid var(--accent-purple);
+      box-shadow: var(--shadow-xl);
+      padding: 1rem;
+      z-index: 200;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .batch-count {
+      font-weight: 700;
+      color: var(--accent-purple);
+      font-size: 1rem;
+    }
+
+    .btn-danger {
+      background: var(--danger-gradient);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-warning {
+      background: var(--warning-gradient);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ============================================================ */
+    /* STATISTICS DASHBOARD */
+    /* ============================================================ */
+
+    .stats-section {
+      margin-bottom: 2rem;
+    }
+
+    .stats-section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-card-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent-purple);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card-label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .stat-bar-item {
+      margin-bottom: 1rem;
+    }
+
+    .stat-bar-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .stat-bar-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .stat-bar-value {
+      color: var(--text-secondary);
+    }
+
+    .stat-bar-track {
+      height: 24px;
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: var(--primary-gradient);
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      padding: 0 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    /* ============================================================ */
+    /* TAG MANAGER */
+    /* ============================================================ */
+
+    .tag-manager-search {
+      margin-bottom: 1.5rem;
+    }
+
+    .tag-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .tag-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .tag-item:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-purple);
+    }
+
+    .tag-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .tag-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .tag-count {
+      background: var(--accent-purple);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .tag-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-icon {
+      padding: 0.5rem;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+
+    .btn-icon:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        📮 Katalog Pohlednic
+        <span class="version-badge">v2.9.0</span>
+      </div>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" title="Přepnout téma">🌙</button>
+        <button class="btn btn-secondary hidden" id="btnBatchMode">☑️ Hromadný výběr</button>
+        <button class="btn btn-secondary hidden" id="btnStats">📊 Statistiky</button>
+        <button class="btn btn-secondary hidden" id="btnTagManager">🏷️ Správce tagů</button>
+        <button class="btn btn-primary" id="btnNewCatalog">📁 Nový katalog</button>
+        <button class="btn btn-secondary" id="btnOpenCatalog">📂 Otevřít</button>
+        <button class="btn btn-success hidden" id="btnSave">💾 Uložit</button>
+        <button class="btn btn-secondary hidden" id="btnExportPDF">📄 Export PDF</button>
+        <button class="btn btn-secondary hidden" id="btnExportCSV">📊 Export CSV</button>
+        <button class="btn btn-secondary hidden" id="btnBatchImport">📥 Import</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar hidden" id="statsBar">
+    <div class="stats-content">
+      <div class="stat-item">
+        <span class="stat-icon">📚</span>
+        <span class="stat-label">Celkem:</span>
+        <span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon">👁️</span>
+        <span class="stat-label">Zobrazeno:</span>
+        <span class="stat-value" id="statVisible">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon">🌍</span>
+        <span class="stat-label">Zemí:</span>
+        <span class="stat-value" id="statCountries">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon">🏷️</span>
+        <span class="stat-label">Tagů:</span>
+        <span class="stat-value" id="statTags">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section hidden" id="filtersSection">
+    <div class="filters-content">
+      <div class="filter-row">
+        <div class="filter-chip active" data-filter="all">Vše</div>
+        <div class="filter-chip" data-filter="recent">Nedávné</div>
+        <div class="filter-chip" data-filter="pre1950">Do 1950</div>
+        <div class="filter-chip" data-filter="post1950">1950+</div>
+        <div class="filter-chip" data-filter="pre1945">Do 1945</div>
+        <div class="filter-chip" data-filter="communist">1945-1989</div>
+        <div class="filter-chip" data-filter="post1989">Po 1989</div>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="searchInput" placeholder="Hledat pohlednice...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main id="mainContent">
+    <!-- Onboarding (shown when no catalog) -->
+    <div class="onboarding" id="onboarding">
+      <div class="onboarding-icon">📮</div>
+      <h1 class="onboarding-title">Vítejte v Katalogu Pohlednic</h1>
+      <p class="onboarding-text">
+        Moderní aplikace pro správu vaší sbírky pohlednic.<br>
+        Vytvořte nový katalog nebo otevřete existující.
+      </p>
+      <div class="onboarding-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('btnNewCatalog').click()">
+          📁 Vytvořit nový katalog
+        </button>
+        <button class="btn btn-secondary" onclick="document.getElementById('btnOpenCatalog').click()">
+          📂 Otevřít existující
+        </button>
+      </div>
+      <p class="onboarding-text mt-2" style="font-size: 0.875rem;">
+        💡 Podporované prohlížeče: Chrome, Edge, Opera (File System API)
+      </p>
+    </div>
+
+    <!-- Gallery (shown when catalog loaded) -->
+    <div class="gallery-section hidden" id="gallerySection">
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+  </main>
+
+  <!-- FAB Button -->
+  <button class="fab hidden" id="fabAdd" title="Přidat pohlednici">+</button>
+
+  <!-- Add Modal -->
+  <dialog id="addModal">
+    <div class="modal-header">
+      <h2 class="modal-title">➕ Přidat pohlednici</h2>
+      <button class="modal-close" onclick="document.getElementById('addModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="addForm">
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label class="form-label">🖼️ Obrázky pohlednice</label>
+          <div class="image-sides">
+            <div>
+              <label class="form-label" style="font-size: 0.75rem; color: var(--text-secondary);">Přední strana</label>
+              <div class="image-upload-area" id="uploadAreaFront" onclick="document.getElementById('imageFrontInput').click()">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Klikni pro výběr obrázku</div>
+              </div>
+              <input type="file" id="imageFrontInput" accept="image/*" hidden>
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.75rem; color: var(--text-secondary);">Zadní strana (volitelné)</label>
+              <div class="image-upload-area" id="uploadAreaBack" onclick="document.getElementById('imageBackInput').click()">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">Klikni pro výběr obrázku</div>
+              </div>
+              <input type="file" id="imageBackInput" accept="image/*" hidden>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">🏙️ Město</label>
+            <input type="text" class="form-input" id="addCity" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🌍 Země</label>
+            <input type="text" class="form-input" id="addCountry" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">📅 Rok (volitelné)</label>
+            <input type="number" class="form-input" id="addYear" min="1800" max="2100" placeholder="Např. 1920">
+          </div>
+          <div class="form-group">
+            <label class="form-label">📝 Název (generuje se automaticky)</label>
+            <input type="text" class="form-input" id="addTitle" placeholder="Volitelné...">
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-group">
+          <label class="form-label">📂 Kategorie (povinné)</label>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="radio" name="addCategory" value="pre1945" required style="cursor: pointer;">
+              <span>🔵 Do 1945</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="radio" name="addCategory" value="communist" required style="cursor: pointer;">
+              <span>🔴 1945-1989</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="radio" name="addCategory" value="post1989" required style="cursor: pointer;">
+              <span>🟢 Po 1989</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group">
+          <label class="form-label">🏷️ Tagy</label>
+          <div class="tags-input-wrapper" id="tagsWrapper">
+            <input type="text" class="tag-input" id="tagInput" placeholder="Přidej tag a stiskni Enter...">
+          </div>
+        </div>
+
+        <!-- Extended Info -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">🏢 Vydavatel (volitelné)</label>
+            <input type="text" class="form-input" id="addPublisher" placeholder="Např. Nakladatelství XYZ">
+          </div>
+          <div class="form-group">
+            <label class="form-label">⭐ Stav (volitelné)</label>
+            <select class="form-input" id="addCondition">
+              <option value="">-- Vyber stav --</option>
+              <option value="mint">Výborný (Mint)</option>
+              <option value="excellent">Velmi dobrý</option>
+              <option value="good">Dobrý</option>
+              <option value="fair">Průměrný</option>
+              <option value="poor">Špatný</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">💰 Pořizovací cena (volitelné)</label>
+          <input type="text" class="form-input" id="addPurchasePrice" placeholder="Např. 50 Kč">
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label class="form-label">📝 Poznámky</label>
+          <textarea class="form-textarea" id="addNotes" placeholder="Zde můžeš přidat poznámky..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('addModal').close()">Zrušit</button>
+      <button class="btn btn-primary" id="btnAddSubmit">➕ Přidat do katalogu</button>
+    </div>
+  </dialog>
+
+  <!-- Detail Modal -->
+  <dialog id="detailModal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="detailTitle">Pohlednice</h2>
+      <span id="detailUidChip" class="uid-chip" title="Klikni pro zkopírování UID" onclick="copyUid(this.textContent)">—</span>
+      <button class="modal-close" onclick="document.getElementById('detailModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-button active" data-tab="overview">👁️ Přehled</button>
+        <button class="tab-button" data-tab="info">✏️ Úpravy</button>
+        <button class="tab-button" data-tab="images">🖼️ Obrázky</button>
+        <button class="tab-button" data-tab="history">📜 Historie</button>
+      </div>
+
+      <!-- Overview Tab -->
+      <div class="tab-content active" id="tabOverview">
+        <div class="overview-grid">
+          <!-- Basic Info Section -->
+          <div class="overview-section" id="sectionBasic">
+            <div class="overview-section-title">📋 Základní informace</div>
+            <div class="overview-field">
+              <span class="overview-label">🏙️ Město:</span>
+              <span class="overview-value" id="overviewCity">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">🌍 Země:</span>
+              <span class="overview-value" id="overviewCountry">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">📅 Rok:</span>
+              <span class="overview-value" id="overviewYear">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">📂 Kategorie:</span>
+              <span class="overview-value" id="overviewCategory">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">📝 Název:</span>
+              <span class="overview-value" id="overviewTitle">-</span>
+            </div>
+          </div>
+
+          <!-- Additional Info Section -->
+          <div class="overview-section">
+            <div class="overview-section-title">ℹ️ Doplňující informace</div>
+            <div class="overview-field">
+              <span class="overview-label">🏢 Vydavatel:</span>
+              <span class="overview-value" id="overviewPublisher">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">⭐ Stav:</span>
+              <span class="overview-value" id="overviewCondition">-</span>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">💰 Cena:</span>
+              <span class="overview-value" id="overviewPrice">-</span>
+            </div>
+          </div>
+
+          <!-- Tags Section -->
+          <div class="overview-section" id="sectionTags">
+            <div class="overview-section-title">🏷️ Tagy</div>
+            <div id="overviewTagsContainer" style="min-height: 40px;">
+              <div class="overview-tags" id="overviewTags">
+                <!-- Tags dynamicky -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Section -->
+          <div class="overview-section" id="overviewNotesSection">
+            <div class="overview-section-title">📝 Poznámky</div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.6;" id="overviewNotes">
+              -
+            </div>
+          </div>
+
+          <!-- Images Section -->
+          <div class="overview-section" id="sectionImages">
+            <div class="overview-section-title">🖼️ Obrázky</div>
+            <div class="overview-images">
+              <div class="overview-image-container">
+                <div class="overview-image-label">Přední strana</div>
+                <img class="overview-image" id="overviewImageFront" src="" alt="Přední strana" onclick="openLightbox(this.src)">
+              </div>
+              <div class="overview-image-container">
+                <div class="overview-image-label">Zadní strana</div>
+                <img class="overview-image" id="overviewImageBack" src="" alt="Zadní strana" onclick="openLightbox(this.src)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Info Section -->
+          <div class="overview-section" id="sectionTech">
+            <div class="overview-section-title">🔧 Technické informace</div>
+            <div class="overview-field">
+              <span class="overview-label">🆔 UID:</span>
+              <div class="uid-display" id="overviewUid" onclick="copyUid(this.textContent)" title="Klikni pro zkopírování">-</div>
+            </div>
+            <div class="overview-field">
+              <span class="overview-label">📅 Vytvořeno:</span>
+              <span class="overview-value" id="overviewCreated" style="font-size: 0.75rem;">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Tab -->
+      <div class="tab-content" id="tabInfo">
+        <form id="editForm">
+          <input type="hidden" id="editUid">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">🏙️ Město</label>
+              <input type="text" class="form-input" id="editCity" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">🌍 Země</label>
+              <input type="text" class="form-input" id="editCountry" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">📅 Rok</label>
+              <input type="number" class="form-input" id="editYear" min="1800" max="2100" placeholder="Volitelné">
+            </div>
+            <div class="form-group">
+              <label class="form-label">📝 Název</label>
+              <input type="text" class="form-input" id="editTitle">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📂 Kategorie</label>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="radio" name="editCategory" value="pre1945" required style="cursor: pointer;">
+                <span>🔵 Do 1945</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="radio" name="editCategory" value="communist" required style="cursor: pointer;">
+                <span>🔴 1945-1989</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <input type="radio" name="editCategory" value="post1989" required style="cursor: pointer;">
+                <span>🟢 Po 1989</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🏷️ Tagy</label>
+            <div class="tags-input-wrapper" id="editTagsWrapper">
+              <input type="text" class="tag-input" id="editTagInput" placeholder="Přidej tag...">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">🏢 Vydavatel</label>
+              <input type="text" class="form-input" id="editPublisher" placeholder="Volitelné">
+            </div>
+            <div class="form-group">
+              <label class="form-label">⭐ Stav</label>
+              <select class="form-input" id="editCondition">
+                <option value="">-- Vyber stav --</option>
+                <option value="mint">Výborný (Mint)</option>
+                <option value="excellent">Velmi dobrý</option>
+                <option value="good">Dobrý</option>
+                <option value="fair">Průměrný</option>
+                <option value="poor">Špatný</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">💰 Pořizovací cena</label>
+            <input type="text" class="form-input" id="editPurchasePrice" placeholder="Volitelné">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📝 Poznámky</label>
+            <textarea class="form-textarea" id="editNotes"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Images Tab -->
+      <div class="tab-content" id="tabImages">
+        <div class="image-sides">
+          <div>
+            <label class="form-label">Přední strana</label>
+            <div class="image-upload-area" id="editUploadAreaFront" style="cursor: zoom-in;" title="Klikni pro zobrazení v plné velikosti">
+              <img class="image-preview" id="editImageFront" alt="Přední strana">
+            </div>
+            <button class="btn btn-secondary mt-1" style="width: 100%;" onclick="document.getElementById('editImageFrontInput').click()">
+              🖼️ Změnit obrázek
+            </button>
+            <input type="file" id="editImageFrontInput" accept="image/*" hidden>
+          </div>
+          <div>
+            <label class="form-label">Zadní strana</label>
+            <div class="image-upload-area" id="editUploadAreaBack" style="cursor: zoom-in;" title="Klikni pro zobrazení v plné velikosti">
+              <img class="image-preview" id="editImageBack" alt="Zadní strana">
+            </div>
+            <button class="btn btn-secondary mt-1" style="width: 100%;" onclick="document.getElementById('editImageBackInput').click()">
+              🖼️ Změnit obrázek
+            </button>
+            <input type="file" id="editImageBackInput" accept="image/*" hidden>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Tab -->
+      <div class="tab-content" id="tabHistory">
+        <div class="history-timeline" id="historyTimeline"></div>
+        <div class="form-group mt-2">
+          <label class="form-label">➕ Přidat poznámku do historie</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" class="form-input" id="historyNoteInput" placeholder="Nová poznámka..." style="flex: 1;">
+            <button class="btn btn-primary" id="btnAddHistoryNote">Přidat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btnDeleteItem">🗑️ Smazat</button>
+      <div style="flex: 1;"></div>
+      <button class="btn btn-secondary" onclick="document.getElementById('detailModal').close()">Zrušit</button>
+      <button class="btn btn-success" id="btnSaveChanges">💾 Uložit změny</button>
+    </div>
+  </dialog>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <div class="lightbox-content">
+      <img class="lightbox-image" id="lightboxImage" src="" alt="Obrázek v plné velikosti">
+    </div>
+  </div>
+
+  <!-- Batch Actions Bar -->
+  <div class="batch-actions-bar hidden" id="batchActionsBar">
+    <span class="batch-count" id="batchCount">0 vybráno</span>
+    <button class="btn btn-primary" onclick="selectAllBatch()">Vybrat vše</button>
+    <button class="btn btn-secondary" onclick="deselectAllBatch()">Zrušit výběr</button>
+    <button class="btn btn-warning" onclick="openBatchCategoryModal()">📂 Změnit kategorii</button>
+    <button class="btn btn-warning" onclick="openBatchTagsModal()">🏷️ Upravit tagy</button>
+    <button class="btn btn-danger" onclick="batchDelete()">🗑️ Smazat</button>
+    <button class="btn btn-secondary" onclick="exitBatchMode()">Ukončit</button>
+  </div>
+
+  <!-- Batch Category Modal -->
+  <dialog id="batchCategoryModal">
+    <div class="modal-header">
+      <h2 class="modal-title">📂 Změnit kategorii</h2>
+      <button class="modal-close" onclick="document.getElementById('batchCategoryModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+        Změnit kategorii pro <span id="batchCategoryCount" style="font-weight: 700; color: var(--accent-purple);">0</span> vybraných pohlednic:
+      </p>
+      <div class="form-group">
+        <label class="form-label">Nová kategorie</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="batchCategory" value="pre1945">
+            <span class="radio-text">🔵 Do 1945</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="batchCategory" value="communist">
+            <span class="radio-text">🔴 1945-1989</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="batchCategory" value="post1989">
+            <span class="radio-text">🟢 Po 1989</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('batchCategoryModal').close()">Zrušit</button>
+      <button class="btn btn-success" onclick="submitBatchCategory()">✅ Změnit</button>
+    </div>
+  </dialog>
+
+  <!-- Batch Tags Modal -->
+  <dialog id="batchTagsModal">
+    <div class="modal-header">
+      <h2 class="modal-title">🏷️ Upravit tagy</h2>
+      <button class="modal-close" onclick="document.getElementById('batchTagsModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+        Upravit tagy pro <span id="batchTagsCount" style="font-weight: 700; color: var(--accent-purple);">0</span> vybraných pohlednic:
+      </p>
+      <div class="form-group">
+        <label class="form-label">Akce</label>
+        <select class="form-input" id="batchTagsAction">
+          <option value="add">➕ Přidat tagy</option>
+          <option value="remove">➖ Odebrat tagy</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tagy (oddělené čárkou)</label>
+        <input type="text" class="form-input" id="batchTagsInput" placeholder="Např: panorama, most, historické">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('batchTagsModal').close()">Zrušit</button>
+      <button class="btn btn-success" onclick="submitBatchTags()">✅ Použít</button>
+    </div>
+  </dialog>
+
+  <!-- Statistics Modal -->
+  <dialog id="statsModal" style="max-width: 900px; max-height: 85vh;">
+    <div class="modal-header">
+      <h2 class="modal-title">📊 Statistiky sbírky</h2>
+      <button class="modal-close" onclick="document.getElementById('statsModal').close()">×</button>
+    </div>
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+      <div id="statsContent">
+        <!-- Dynamicky generováno JavaScriptem -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('statsModal').close()">Zavřít</button>
+    </div>
+  </dialog>
+
+  <!-- PDF Export Modal -->
+  <dialog id="pdfExportModal" style="max-width: 800px;">
+    <div class="modal-header">
+      <h2 class="modal-title">📄 Export do PDF</h2>
+      <button class="modal-close" onclick="document.getElementById('pdfExportModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- Výběr položek -->
+      <div class="pdf-export-section">
+        <div class="pdf-export-section-title">📋 Výběr položek</div>
+        <div class="pdf-export-options">
+          <label class="pdf-radio-option">
+            <input type="radio" name="pdf-items" value="all" checked>
+            <span>Všechny pohlednice (<span id="pdfCountAll">0</span>)</span>
+          </label>
+          <label class="pdf-radio-option">
+            <input type="radio" name="pdf-items" value="filtered">
+            <span>Aktuální filtr (<span id="pdfCountFiltered">0</span>)</span>
+          </label>
+          <label class="pdf-radio-option" id="pdfOptionSelected">
+            <input type="radio" name="pdf-items" value="selected" disabled>
+            <span>Vybrané položky (<span id="pdfCountSelected">0</span>)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Nastavení obsahu -->
+      <div class="pdf-export-section">
+        <div class="pdf-export-section-title">🎨 Nastavení obsahu</div>
+        <div class="pdf-export-options">
+          <label class="pdf-checkbox-option">
+            <input type="checkbox" id="pdfIncludeImages" checked>
+            <label for="pdfIncludeImages">Zahrnout obrázky</label>
+          </label>
+          
+          <div class="pdf-select-wrapper" id="pdfImageSizeWrapper">
+            <label>Velikost obrázků:</label>
+            <select id="pdfImageSize">
+              <option value="small">Malé (300px)</option>
+              <option value="medium" selected>Střední (500px)</option>
+              <option value="large">Velké (800px)</option>
+            </select>
+          </div>
+
+          <label class="pdf-checkbox-option">
+            <input type="checkbox" id="pdfFrontOnly">
+            <label for="pdfFrontOnly">Pouze přední strana obrázků</label>
+          </label>
+
+          <label class="pdf-checkbox-option">
+            <input type="checkbox" id="pdfIncludeNotes" checked>
+            <label for="pdfIncludeNotes">Zahrnout poznámky</label>
+          </label>
+
+          <label class="pdf-checkbox-option">
+            <input type="checkbox" id="pdfIncludeTechnical">
+            <label for="pdfIncludeTechnical">Zahrnout technické údaje (UID, datum)</label>
+          </label>
+        </div>
+      </div>
+
+      <!-- Vzhled -->
+      <div class="pdf-export-section">
+        <div class="pdf-export-section-title">🖼️ Vzhled</div>
+        <div class="pdf-export-options">
+          <div class="pdf-select-wrapper">
+            <label>Layout:</label>
+            <select id="pdfLayout">
+              <option value="cards" selected>Karty (přehledné)</option>
+              <option value="table">Tabulka (kompaktní)</option>
+              <option value="list">Seznam (bez obrázků)</option>
+            </select>
+          </div>
+
+          <div class="pdf-select-wrapper">
+            <label>Řazení:</label>
+            <select id="pdfSortBy">
+              <option value="city">Podle města</option>
+              <option value="country">Podle země</option>
+              <option value="year">Podle roku</option>
+              <option value="category">Podle kategorie</option>
+            </select>
+          </div>
+
+          <div class="pdf-select-wrapper">
+            <label>Orientace:</label>
+            <select id="pdfOrientation">
+              <option value="portrait" selected>Na výšku</option>
+              <option value="landscape">Na šířku</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer pdf-modal-actions">
+      <button class="btn btn-secondary" onclick="document.getElementById('pdfExportModal').close()">Zrušit</button>
+      <button class="btn btn-primary" onclick="previewPdf()">🎨 Náhled</button>
+      <button class="btn btn-success" onclick="downloadPdf()">📥 Stáhnout PDF</button>
+    </div>
+  </dialog>
+
+  <!-- PDF Progress Overlay -->
+  <div id="pdfProgressOverlay" class="pdf-progress-overlay hidden">
+    <div class="pdf-progress-content">
+      <div class="pdf-progress-title">📄 Generuji PDF...</div>
+      <div class="pdf-progress-status" id="pdfProgressStatus">Příprava dokumentu...</div>
+      <div class="pdf-progress-bar">
+        <div class="pdf-progress-fill" id="pdfProgressFill" style="width: 0%"></div>
+      </div>
+      <div class="pdf-progress-percent" id="pdfProgressPercent">0%</div>
+    </div>
+  </div>
+
+  <!-- Tag Manager Modal -->
+  <dialog id="tagManagerModal" style="max-width: 700px;">
+    <div class="modal-header">
+      <h2 class="modal-title">🏷️ Správce tagů</h2>
+      <button class="modal-close" onclick="document.getElementById('tagManagerModal').close()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="tag-manager-search">
+        <input type="text" class="form-input" id="tagManagerSearch" placeholder="🔍 Hledat tag...">
+      </div>
+      <div class="tag-list" id="tagManagerList">
+        <!-- Dynamicky generováno JavaScriptem -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('tagManagerModal').close()">Zavřít</button>
+    </div>
+  </dialog>
+
+  <script>
+    const VERSION = '2.9.0';
+
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    const state = {
+      dirHandle: null,
+      catalog: [],
+      filteredCatalog: [],
+      currentFilter: 'all',
+      searchQuery: '',
+      currentTags: [],
+      editingUid: null,
+      imageFrontFile: null,
+      imageBackFile: null,
+      currentCategory: null,
+      batchMode: false,
+      selectedItems: new Set()
+    };
+
+    // ============================================================
+    // DATABASE (IndexedDB for thumbnails)
+    // ============================================================
+
+    const DB_NAME = 'PostcardCatalogDB';
+    const DB_VERSION = 1;
+    let db = null;
+
+    async function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          db = request.result;
+          resolve(db);
+        };
+        
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains('thumbnails')) {
+            database.createObjectStore('thumbnails', { keyPath: 'path' });
+          }
+        };
+      });
+    }
+
+    async function getThumbnail(path) {
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const transaction = db.transaction(['thumbnails'], 'readonly');
+        const store = transaction.objectStore('thumbnails');
+        const request = store.get(path);
+        request.onsuccess = () => resolve(request.result?.dataUrl || null);
+        request.onerror = () => resolve(null);
+      });
+    }
+
+    async function saveThumbnail(path, dataUrl) {
+      if (!db) return;
+      return new Promise((resolve) => {
+        const transaction = db.transaction(['thumbnails'], 'readwrite');
+        const store = transaction.objectStore('thumbnails');
+        store.put({ path, dataUrl });
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => resolve();
+      });
+    }
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log(`📮 Katalog Pohlednic v${VERSION} - Modern Edition`);
+      
+      // Initialize theme
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+      
+      await initDB();
+      setupEventListeners();
+      checkFileSystemAPI();
+    });
+
+    function checkFileSystemAPI() {
+      if (!('showDirectoryPicker' in window)) {
+        showToast('⚠️ File System API není podporováno. Použij Chrome, Edge nebo Opera.', 'error');
+      }
+    }
+
+    function setupEventListeners() {
+      // Header buttons
+      document.getElementById('btnNewCatalog').onclick = createNewCatalog;
+      document.getElementById('btnOpenCatalog').onclick = openCatalog;
+      document.getElementById('btnSave').onclick = saveCatalog;
+      document.getElementById('btnExportPDF').onclick = openPdfExportModal;
+      document.getElementById('btnExportCSV').onclick = exportToCSV;
+      document.getElementById('btnBatchImport').onclick = batchImport;
+      
+      // New feature buttons
+      document.getElementById('themeToggle').onclick = toggleTheme;
+      document.getElementById('btnBatchMode').onclick = toggleBatchMode;
+      document.getElementById('btnStats').onclick = openStatsModal;
+      document.getElementById('btnTagManager').onclick = openTagManagerModal;
+
+      // FAB
+      document.getElementById('fabAdd').onclick = openAddModal;
+
+      // Add modal
+      document.getElementById('btnAddSubmit').onclick = submitAddForm;
+      document.getElementById('imageFrontInput').onchange = (e) => handleImageUpload(e, 'front');
+      document.getElementById('imageBackInput').onchange = (e) => handleImageUpload(e, 'back');
+      document.getElementById('tagInput').onkeydown = handleTagInput;
+
+      // Detail modal
+      document.getElementById('btnSaveChanges').onclick = saveChanges;
+      document.getElementById('btnDeleteItem').onclick = deleteItem;
+      document.getElementById('btnAddHistoryNote').onclick = addHistoryNote;
+      document.getElementById('editTagInput').onkeydown = handleEditTagInput;
+      document.getElementById('editImageFrontInput').onchange = (e) => handleEditImageUpload(e, 'front');
+      document.getElementById('editImageBackInput').onchange = (e) => handleEditImageUpload(e, 'back');
+      
+      // Lightbox for images in detail modal
+      document.getElementById('editUploadAreaFront').onclick = (e) => {
+        if (e.target.tagName === 'IMG' && e.target.src) {
+          const item = state.catalog.find(i => i.uid === state.editingUid);
+          if (item && item.imageFrontPath) {
+            openLightbox(item.imageFrontPath);
+          }
+        }
+      };
+      document.getElementById('editUploadAreaBack').onclick = (e) => {
+        if (e.target.tagName === 'IMG' && e.target.src) {
+          const item = state.catalog.find(i => i.uid === state.editingUid);
+          if (item && item.imageBackPath) {
+            openLightbox(item.imageBackPath);
+          }
+        }
+      };
+
+      // Tabs
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.onclick = () => switchTab(btn.dataset.tab);
+      });
+
+      // Filters
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.onclick = () => applyFilter(chip.dataset.filter);
+      });
+
+      // Search
+      document.getElementById('searchInput').oninput = (e) => {
+        state.searchQuery = e.target.value.toLowerCase();
+        applyFilters();
+      };
+      
+      // Tag Manager Search
+      document.getElementById('tagManagerSearch').oninput = filterTagManagerList;
+      
+      // Lightbox close on background click
+      document.getElementById('lightbox').onclick = (e) => {
+        if (e.target.id === 'lightbox') {
+          closeLightbox();
+        }
+      };
+    }
+
+    // ============================================================
+    // CATALOG OPERATIONS
+    // ============================================================
+
+    async function createNewCatalog() {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        state.dirHandle = dirHandle;
+
+        // Create katalog.json
+        const fileHandle = await dirHandle.getFileHandle('katalog.json', { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify([], null, 2));
+        await writable.close();
+
+        // Create obrazky folder
+        await dirHandle.getDirectoryHandle('obrazky', { create: true });
+
+        state.catalog = [];
+        showCatalogUI();
+        showToast('✅ Nový katalog vytvořen!', 'success');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          showToast('❌ Chyba při vytváření katalogu', 'error');
+          console.error(error);
+        }
+      }
+    }
+
+    async function openCatalog() {
+      try {
+        showLoading(true);
+        const dirHandle = await window.showDirectoryPicker();
+        state.dirHandle = dirHandle;
+
+        // Read katalog.json
+        const fileHandle = await dirHandle.getFileHandle('katalog.json');
+        const file = await fileHandle.getFile();
+        const text = await file.text();
+        state.catalog = JSON.parse(text);
+
+        // Migrate old data: add category if missing
+        let needsSave = false;
+        state.catalog.forEach(item => {
+          if (!item.category) {
+            // Auto-assign category based on year (backward compatibility)
+            if (item.year) {
+              if (item.year < 1945) {
+                item.category = 'pre1945';
+              } else if (item.year >= 1945 && item.year <= 1989) {
+                item.category = 'communist';
+              } else {
+                item.category = 'post1989';
+              }
+            } else {
+              // No year, default to pre1945
+              item.category = 'pre1945';
+            }
+            needsSave = true;
+          }
+        });
+
+        // Save if migration happened
+        if (needsSave) {
+          await saveCatalog();
+        }
+
+        // Generate thumbnails
+        await generateThumbnails();
+
+        showCatalogUI();
+        applyFilters();
+        showToast(`✅ Katalog načten (${state.catalog.length} položek)`, 'success');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          showToast('❌ Chyba při otevírání katalogu', 'error');
+          console.error(error);
+        }
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function saveCatalog() {
+      if (!state.dirHandle) return;
+
+      try {
+        const fileHandle = await state.dirHandle.getFileHandle('katalog.json', { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(state.catalog, null, 2));
+        await writable.close();
+
+        showToast('✅ Katalog uložen', 'success');
+      } catch (error) {
+        showToast('❌ Chyba při ukládání', 'error');
+        console.error(error);
+      }
+    }
+
+    // ============================================================
+    // THUMBNAILS
+    // ============================================================
+
+    async function generateThumbnails() {
+      if (!state.dirHandle) return;
+
+      try {
+        const obrazkyDir = await state.dirHandle.getDirectoryHandle('obrazky');
+        
+        for (const item of state.catalog) {
+          if (item.imageFrontPath) {
+            const cached = await getThumbnail(item.imageFrontPath);
+            if (!cached) {
+              try {
+                const fileHandle = await obrazkyDir.getFileHandle(item.imageFrontPath);
+                const file = await fileHandle.getFile();
+                const dataUrl = await resizeImage(file, 400);
+                await saveThumbnail(item.imageFrontPath, dataUrl);
+              } catch (e) {
+                console.warn('Could not load thumbnail for', item.imageFrontPath);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error generating thumbnails:', error);
+      }
+    }
+
+    async function resizeImage(file, maxWidth = 400) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ratio = maxWidth / img.width;
+            canvas.width = maxWidth;
+            canvas.height = img.height * ratio;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ============================================================
+    // UI FUNCTIONS
+    // ============================================================
+
+    function showCatalogUI() {
+      document.getElementById('onboarding').classList.add('hidden');
+      document.getElementById('statsBar').classList.remove('hidden');
+      document.getElementById('filtersSection').classList.remove('hidden');
+      document.getElementById('gallerySection').classList.remove('hidden');
+      document.getElementById('fabAdd').classList.remove('hidden');
+      document.getElementById('btnSave').classList.remove('hidden');
+      document.getElementById('btnExportPDF').classList.remove('hidden');
+      document.getElementById('btnExportCSV').classList.remove('hidden');
+      document.getElementById('btnBatchImport').classList.remove('hidden');
+      document.getElementById('btnBatchMode').classList.remove('hidden');
+      document.getElementById('btnStats').classList.remove('hidden');
+      document.getElementById('btnTagManager').classList.remove('hidden');
+      updateStats();
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').textContent = state.catalog.length;
+      document.getElementById('statVisible').textContent = state.filteredCatalog.length;
+      
+      const countries = new Set(state.catalog.map(item => item.country));
+      document.getElementById('statCountries').textContent = countries.size;
+      
+      const allTags = new Set(state.catalog.flatMap(item => item.tags || []));
+      document.getElementById('statTags').textContent = allTags.size;
+    }
+
+    async function renderGallery() {
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '';
+
+      if (state.filteredCatalog.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-secondary);">📭 Žádné pohlednice nenalezeny</div>';
+        return;
+      }
+
+      for (const item of state.filteredCatalog) {
+        const card = await createPostcardCard(item);
+        grid.appendChild(card);
+      }
+
+      updateStats();
+    }
+
+    async function createPostcardCard(item) {
+      const card = document.createElement('div');
+      card.className = 'postcard-card';
+      
+      // In batch mode, handle checkbox click instead of detail modal
+      if (state.batchMode) {
+        card.onclick = () => handleBatchCardClick(item.uid);
+        card.style.cursor = 'pointer';
+      } else {
+        card.onclick = () => openDetailModal(item.uid);
+      }
+
+      // Get period from category
+      const period = getPeriod(item.category);
+      const periodClass = `period-${period.id}`;
+      const periodLabel = period.label;
+
+      // Get thumbnail
+      let thumbnail = await getThumbnail(item.imageFrontPath);
+      if (!thumbnail && state.dirHandle) {
+        try {
+          const obrazkyDir = await state.dirHandle.getDirectoryHandle('obrazky');
+          const fileHandle = await obrazkyDir.getFileHandle(item.imageFrontPath);
+          const file = await fileHandle.getFile();
+          thumbnail = await resizeImage(file, 400);
+          await saveThumbnail(item.imageFrontPath, thumbnail);
+        } catch (e) {
+          thumbnail = null;
+        }
+      }
+
+      // Checkbox for batch mode
+      const checkboxHtml = state.batchMode ? `
+        <input type="checkbox" class="postcard-checkbox" data-uid="${item.uid}" ${state.selectedItems.has(item.uid) ? 'checked' : ''}>
+      ` : '';
+
+      card.innerHTML = `
+        ${checkboxHtml}
+        <div class="postcard-image-wrapper">
+          ${thumbnail ? `
+            <img src="${thumbnail}" class="postcard-image-bg" alt="">
+            <img src="${thumbnail}" class="postcard-image" alt="${item.title || 'Pohlednice'}">
+          ` : '<div class="postcard-image" style="background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: var(--text-secondary);">📷</div>'}
+          <div class="period-badge ${periodClass}">${periodLabel}</div>
+        </div>
+        <div class="postcard-content">
+          <div class="postcard-title">${item.title || generateTitle(item.city, item.country, item.year)}</div>
+          <div class="postcard-meta">
+            <span>🏙️ ${item.city}</span>
+            <span>•</span>
+            <span>🌍 ${item.country}</span>
+            ${item.year ? `<span>•</span><span>📅 ${item.year}</span>` : ''}
+          </div>
+          ${item.tags && item.tags.length > 0 ? `
+            <div class="postcard-tags">
+              ${item.tags.map(tag => `<span class="tag-chip">${tag}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      return card;
+    }
+
+    function getPeriod(category) {
+      if (!category) return { id: 'unknown', label: 'Neznámé' };
+      if (category === 'pre1945') return { id: 'pre1945', label: 'Do 1945' };
+      if (category === 'communist') return { id: 'communist', label: '1945-1989' };
+      if (category === 'post1989') return { id: 'post1989', label: 'Po 1989' };
+      return { id: 'unknown', label: 'Neznámé' };
+    }
+
+    // ============================================================
+    // FILTERS
+    // ============================================================
+
+    function applyFilter(filter) {
+      state.currentFilter = filter;
+      
+      // Update UI
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.filter === filter);
+      });
+
+      applyFilters();
+    }
+
+    function applyFilters() {
+      let filtered = [...state.catalog];
+
+      // Apply period filter
+      if (state.currentFilter !== 'all') {
+        filtered = filtered.filter(item => {
+          switch (state.currentFilter) {
+            case 'recent':
+              // Last 10 items
+              return state.catalog.indexOf(item) >= state.catalog.length - 10;
+            case 'pre1950':
+              // Pre 1950 by year OR pre1945 category
+              return (item.year && item.year < 1950) || item.category === 'pre1945';
+            case 'post1950':
+              // Post 1950 by year OR communist/post1989 category
+              return (item.year && item.year >= 1950) || item.category === 'communist' || item.category === 'post1989';
+            case 'pre1945':
+              return item.category === 'pre1945';
+            case 'communist':
+              return item.category === 'communist';
+            case 'post1989':
+              return item.category === 'post1989';
+            default:
+              return true;
+          }
+        });
+      }
+
+      // Apply search
+      if (state.searchQuery) {
+        filtered = filtered.filter(item => {
+          const searchText = `${item.title} ${item.city} ${item.country} ${item.year} ${(item.tags || []).join(' ')} ${item.notes || ''}`.toLowerCase();
+          return searchText.includes(state.searchQuery);
+        });
+      }
+
+      state.filteredCatalog = filtered;
+      renderGallery();
+    }
+
+    // ============================================================
+    // ADD MODAL
+    // ============================================================
+
+    function openAddModal() {
+      state.currentTags = [];
+      state.imageFrontFile = null;
+      state.imageBackFile = null;
+      
+      document.getElementById('addForm').reset();
+      
+      // Uncheck all category radio buttons
+      document.querySelectorAll('input[name="addCategory"]').forEach(radio => {
+        radio.checked = false;
+      });
+      
+      document.getElementById('uploadAreaFront').innerHTML = '<div class="upload-icon">📷</div><div class="upload-text">Klikni pro výběr obrázku</div>';
+      document.getElementById('uploadAreaBack').innerHTML = '<div class="upload-icon">📷</div><div class="upload-text">Klikni pro výběr obrázku</div>';
+      document.getElementById('uploadAreaFront').classList.remove('has-image');
+      document.getElementById('uploadAreaBack').classList.remove('has-image');
+      renderAddTags();
+      
+      document.getElementById('addModal').showModal();
+    }
+
+    function handleImageUpload(e, side) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (side === 'front') {
+        state.imageFrontFile = file;
+        const uploadArea = document.getElementById('uploadAreaFront');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          uploadArea.innerHTML = `<img src="${e.target.result}" class="image-preview">`;
+          uploadArea.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        state.imageBackFile = file;
+        const uploadArea = document.getElementById('uploadAreaBack');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          uploadArea.innerHTML = `<img src="${e.target.result}" class="image-preview">`;
+          uploadArea.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleTagInput(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const value = e.target.value.trim();
+        if (value && !state.currentTags.includes(value)) {
+          state.currentTags.push(value);
+          renderAddTags();
+          e.target.value = '';
+        }
+      }
+    }
+
+    function renderAddTags() {
+      const wrapper = document.getElementById('tagsWrapper');
+      const input = document.getElementById('tagInput');
+      
+      wrapper.innerHTML = '';
+      
+      state.currentTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag-item';
+        tagEl.innerHTML = `
+          ${tag}
+          <button type="button" class="tag-remove" onclick="removeAddTag('${tag}')">×</button>
+        `;
+        wrapper.appendChild(tagEl);
+      });
+      
+      wrapper.appendChild(input);
+    }
+
+    function removeAddTag(tag) {
+      state.currentTags = state.currentTags.filter(t => t !== tag);
+      renderAddTags();
+    }
+
+    async function submitAddForm() {
+      const city = document.getElementById('addCity').value.trim();
+      const country = document.getElementById('addCountry').value.trim();
+      const year = parseInt(document.getElementById('addYear').value) || null;
+      const titleInput = document.getElementById('addTitle').value.trim();
+      const notes = document.getElementById('addNotes').value.trim();
+      const category = document.querySelector('input[name="addCategory"]:checked')?.value;
+      const publisher = document.getElementById('addPublisher').value.trim();
+      const condition = document.getElementById('addCondition').value;
+      const purchasePrice = document.getElementById('addPurchasePrice').value.trim();
+
+      if (!city || !country) {
+        showToast('⚠️ Vyplň město a zemi', 'error');
+        return;
+      }
+
+      if (!category) {
+        showToast('⚠️ Vyber kategorii', 'error');
+        return;
+      }
+
+      if (!state.imageFrontFile) {
+        showToast('⚠️ Nahraj alespoň přední stranu pohlednice', 'error');
+        return;
+      }
+
+      try {
+        showLoading(true);
+
+        // Generate UID
+        const uid = generateUID();
+
+        // Copy images
+        const imageFrontPath = await copyImage(state.imageFrontFile, uid, 'front', { city, country, year });
+        let imageBackPath = null;
+        if (state.imageBackFile) {
+          imageBackPath = await copyImage(state.imageBackFile, uid, 'back', { city, country, year });
+        }
+
+        // Generate thumbnail
+        const thumbnail = await resizeImage(state.imageFrontFile, 400);
+        await saveThumbnail(imageFrontPath, thumbnail);
+
+        // Create item
+        const title = titleInput || generateTitle(city, country, year);
+        const item = {
+          uid,
+          imageFrontPath,
+          imageBackPath,
+          title,
+          city,
+          country,
+          year,
+          category,
+          tags: [...state.currentTags],
+          notes,
+          publisher,
+          condition,
+          purchasePrice,
+          createdAt: timestamp(),
+          history: [
+            {
+              timestamp: timestamp(),
+              action: 'Vytvořeno'
+            }
+          ]
+        };
+
+        state.catalog.push(item);
+        await saveCatalog();
+        applyFilters();
+        
+        document.getElementById('addModal').close();
+        showToast('✅ Pohlednice přidána', 'success');
+      } catch (error) {
+        showToast('❌ Chyba při přidávání pohlednice', 'error');
+        console.error(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function copyImage(file, uid, side, metadata) {
+      if (!state.dirHandle) return null;
+
+      try {
+        const obrazkyDir = await state.dirHandle.getDirectoryHandle('obrazky', { create: true });
+        const imagePath = generateImagePath(uid, side, metadata);
+        const fileHandle = await obrazkyDir.getFileHandle(imagePath, { create: true });
+        const writable = await fileHandle.createWritable();
+        
+        const arrayBuffer = await file.arrayBuffer();
+        await writable.write(arrayBuffer);
+        await writable.close();
+
+        return imagePath;
+      } catch (error) {
+        console.error('Error copying image:', error);
+        throw error;
+      }
+    }
+
+    // ============================================================
+    // DETAIL MODAL
+    // ============================================================
+
+    async function openDetailModal(uid) {
+      const item = state.catalog.find(i => i.uid === uid);
+      if (!item) return;
+
+      state.editingUid = uid;
+      state.currentTags = [...(item.tags || [])];
+
+      // Fill form
+      document.getElementById('editUid').value = item.uid;
+      document.getElementById('editCity').value = item.city;
+      document.getElementById('editCountry').value = item.country;
+      document.getElementById('editYear').value = item.year || '';
+      document.getElementById('editTitle').value = item.title || '';
+      document.getElementById('editNotes').value = item.notes || '';
+      document.getElementById('editPublisher').value = item.publisher || '';
+      document.getElementById('editCondition').value = item.condition || '';
+      document.getElementById('editPurchasePrice').value = item.purchasePrice || '';
+
+      // Set category radio button
+      if (item.category) {
+        const categoryRadio = document.querySelector(`input[name="editCategory"][value="${item.category}"]`);
+        if (categoryRadio) categoryRadio.checked = true;
+      }
+
+      // Load images
+      await loadEditImages(item);
+
+      // Render tags
+      renderEditTags();
+
+      // Render history
+      renderHistory(item);
+
+      // Populate overview tab
+      await populateOverviewTab(item);
+
+      // Update title
+      document.getElementById('detailTitle').textContent = item.title || generateTitle(item.city, item.country, item.year);
+      document.getElementById('detailUidChip').textContent = item.uid || '—';
+
+      // Switch to overview tab
+      switchTab('overview');
+
+      document.getElementById('detailModal').showModal();
+    }
+
+    async function populateOverviewTab(item) {
+      // Basic info
+      document.getElementById('overviewCity').textContent = item.city;
+      document.getElementById('overviewCountry').textContent = item.country;
+      document.getElementById('overviewYear').innerHTML = item.year ? item.year : '<span class="empty">Neznámý</span>';
+      
+      const categoryMap = {
+        'pre1945': '🔵 Do 1945',
+        'communist': '🔴 1945-1989',
+        'post1989': '🟢 Po 1989'
+      };
+      document.getElementById('overviewCategory').textContent = categoryMap[item.category] || '-';
+      document.getElementById('overviewTitle').textContent = item.title || generateTitle(item.city, item.country, item.year);
+
+      // Additional info
+      document.getElementById('overviewPublisher').innerHTML = item.publisher || '<span class="empty">Neuvedeno</span>';
+      
+      const conditionMap = {
+        'mint': 'Výborný (Mint)',
+        'excellent': 'Velmi dobrý',
+        'good': 'Dobrý',
+        'fair': 'Průměrný',
+        'poor': 'Špatný'
+      };
+      document.getElementById('overviewCondition').innerHTML = item.condition ? conditionMap[item.condition] : '<span class="empty">Neuvedeno</span>';
+      document.getElementById('overviewPrice').innerHTML = item.purchasePrice || '<span class="empty">Neuvedeno</span>';
+
+      // Tags
+      const tagsContainer = document.getElementById('overviewTags');
+      if (item.tags && item.tags.length > 0) {
+        tagsContainer.innerHTML = item.tags.map(tag => 
+          `<span class="overview-tag">${tag}</span>`
+        ).join('');
+      } else {
+        tagsContainer.innerHTML = '<span class="empty" style="font-size: 0.875rem;">Žádné tagy</span>';
+      }
+
+      // Notes
+      const notesContent = document.getElementById('overviewNotes');
+      if (item.notes && item.notes.trim()) {
+        notesContent.textContent = item.notes;
+      } else {
+        notesContent.innerHTML = '<span class="empty">Žádné poznámky</span>';
+      }
+
+      // Technical info
+      document.getElementById('overviewUid').textContent = item.uid;
+      
+      const createdEntry = item.history && item.history.find(h => h.action && h.action.includes('vytvořena'));
+      document.getElementById('overviewCreated').textContent = createdEntry ? createdEntry.timestamp : '-';
+
+      // Load overview images
+      const frontImg = document.getElementById('overviewImageFront');
+      const backImg = document.getElementById('overviewImageBack');
+
+      if (item.imageFrontPath) {
+        const thumbnail = await getThumbnail(item.imageFrontPath);
+        if (thumbnail) {
+          frontImg.src = thumbnail;
+        }
+      }
+
+      if (item.imageBackPath) {
+        const thumbnail = await getThumbnail(item.imageBackPath);
+        if (thumbnail) {
+          backImg.src = thumbnail;
+        }
+      }
+    }
+
+    function copyUid(uid) {
+      navigator.clipboard.writeText(uid).then(() => {
+        showToast('✅ UID zkopírováno do schránky', 'success');
+      }).catch(() => {
+        showToast('❌ Chyba při kopírování UID', 'error');
+      });
+    }
+
+    async function loadEditImages(item) {
+      const frontImg = document.getElementById('editImageFront');
+      const backImg = document.getElementById('editImageBack');
+      const frontArea = document.getElementById('editUploadAreaFront');
+      const backArea = document.getElementById('editUploadAreaBack');
+
+      // Load front image
+      if (item.imageFrontPath) {
+        const thumbnail = await getThumbnail(item.imageFrontPath);
+        if (thumbnail) {
+          frontImg.src = thumbnail;
+          frontArea.classList.add('has-image');
+        }
+      }
+
+      // Load back image
+      if (item.imageBackPath) {
+        const thumbnail = await getThumbnail(item.imageBackPath);
+        if (thumbnail) {
+          backImg.src = thumbnail;
+          backArea.classList.add('has-image');
+        } else {
+          backArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-text">Žádný obrázek</div>';
+        }
+      } else {
+        backArea.innerHTML = '<div class="upload-icon">📷</div><div class="upload-text">Žádný obrázek</div>';
+      }
+    }
+
+    function handleEditTagInput(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const value = e.target.value.trim();
+        if (value && !state.currentTags.includes(value)) {
+          state.currentTags.push(value);
+          renderEditTags();
+          e.target.value = '';
+        }
+      }
+    }
+
+    function renderEditTags() {
+      const wrapper = document.getElementById('editTagsWrapper');
+      const input = document.getElementById('editTagInput');
+      
+      wrapper.innerHTML = '';
+      
+      state.currentTags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'tag-item';
+        tagEl.innerHTML = `
+          ${tag}
+          <button type="button" class="tag-remove" onclick="removeEditTag('${tag}')">×</button>
+        `;
+        wrapper.appendChild(tagEl);
+      });
+      
+      wrapper.appendChild(input);
+    }
+
+    function removeEditTag(tag) {
+      state.currentTags = state.currentTags.filter(t => t !== tag);
+      renderEditTags();
+    }
+
+    async function handleEditImageUpload(e, side) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const item = state.catalog.find(i => i.uid === state.editingUid);
+      if (!item) return;
+
+      try {
+        showLoading(true);
+
+        // Copy new image
+        const imagePath = await copyImage(file, item.uid, side, { city: item.city, country: item.country, year: item.year });
+
+        // Update item
+        if (side === 'front') {
+          item.imageFrontPath = imagePath;
+        } else {
+          item.imageBackPath = imagePath;
+        }
+
+        // Generate thumbnail
+        const thumbnail = await resizeImage(file, 400);
+        await saveThumbnail(imagePath, thumbnail);
+
+        // Add to history
+        item.history.push({
+          timestamp: timestamp(),
+          action: `Změněn obrázek (${side === 'front' ? 'přední' : 'zadní'} strana)`
+        });
+
+        await saveCatalog();
+        await loadEditImages(item);
+        renderHistory(item);
+        showToast('✅ Obrázek změněn', 'success');
+      } catch (error) {
+        showToast('❌ Chyba při změně obrázku', 'error');
+        console.error(error);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function renderHistory(item) {
+      const timeline = document.getElementById('historyTimeline');
+      timeline.innerHTML = '';
+
+      if (!item.history || item.history.length === 0) {
+        timeline.innerHTML = '<div style="color: var(--text-secondary);">Žádná historie</div>';
+        return;
+      }
+
+      item.history.slice().reverse().forEach(entry => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+          <div class="history-timestamp">${entry.timestamp}</div>
+          <div class="history-action">${entry.action}</div>
+        `;
+        timeline.appendChild(historyItem);
+      });
+    }
+
+    function addHistoryNote() {
+      const input = document.getElementById('historyNoteInput');
+      const note = input.value.trim();
+      if (!note) return;
+
+      const item = state.catalog.find(i => i.uid === state.editingUid);
+      if (!item) return;
+
+      item.history.push({
+        timestamp: timestamp(),
+        action: note
+      });
+
+      renderHistory(item);
+      input.value = '';
+      showToast('✅ Poznámka přidána', 'success');
+    }
+
+    async function saveChanges() {
+      const item = state.catalog.find(i => i.uid === state.editingUid);
+      if (!item) return;
+
+      const city = document.getElementById('editCity').value.trim();
+      const country = document.getElementById('editCountry').value.trim();
+      const year = parseInt(document.getElementById('editYear').value) || null;
+      const title = document.getElementById('editTitle').value.trim();
+      const notes = document.getElementById('editNotes').value.trim();
+      const category = document.querySelector('input[name="editCategory"]:checked')?.value;
+      const publisher = document.getElementById('editPublisher').value.trim();
+      const condition = document.getElementById('editCondition').value;
+      const purchasePrice = document.getElementById('editPurchasePrice').value.trim();
+
+      if (!city || !country) {
+        showToast('⚠️ Vyplň město a zemi', 'error');
+        return;
+      }
+
+      if (!category) {
+        showToast('⚠️ Vyber kategorii', 'error');
+        return;
+      }
+
+      // Check for changes
+      const hasChanges = 
+        item.city !== city ||
+        item.country !== country ||
+        item.year !== year ||
+        item.title !== title ||
+        item.notes !== notes ||
+        item.category !== category ||
+        item.publisher !== publisher ||
+        item.condition !== condition ||
+        item.purchasePrice !== purchasePrice ||
+        JSON.stringify(item.tags) !== JSON.stringify(state.currentTags);
+
+      if (hasChanges) {
+        item.city = city;
+        item.country = country;
+        item.year = year;
+        item.title = title || generateTitle(city, country, year);
+        item.notes = notes;
+        item.category = category;
+        item.publisher = publisher;
+        item.condition = condition;
+        item.purchasePrice = purchasePrice;
+        item.tags = [...state.currentTags];
+
+        item.history.push({
+          timestamp: timestamp(),
+          action: 'Upraveno'
+        });
+
+        await saveCatalog();
+        applyFilters();
+        showToast('✅ Změny uloženy', 'success');
+      }
+
+      document.getElementById('detailModal').close();
+    }
+
+    async function deleteItem() {
+      if (!confirm('Opravdu chceš smazat tuto pohlednici?')) return;
+
+      const index = state.catalog.findIndex(i => i.uid === state.editingUid);
+      if (index === -1) return;
+
+      state.catalog.splice(index, 1);
+      await saveCatalog();
+      applyFilters();
+      
+      document.getElementById('detailModal').close();
+      showToast('✅ Pohlednice smazána', 'success');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+      });
+    }
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
+
+    async function exportToCSV() {
+      const headers = ['UID', 'Název', 'Město', 'Země', 'Rok', 'Kategorie', 'Vydavatel', 'Stav', 'Cena', 'Tagy', 'Poznámky', 'Obrázek (přední)', 'Obrázek (zadní)', 'Vytvořeno'];
+      const rows = state.catalog.map(item => [
+        item.uid,
+        item.title || '',
+        item.city,
+        item.country,
+        item.year || '',
+        item.category || '',
+        item.publisher || '',
+        item.condition || '',
+        item.purchasePrice || '',
+        (item.tags || []).join('; '),
+        item.notes || '',
+        item.imageFrontPath || '',
+        item.imageBackPath || '',
+        item.createdAt
+      ]);
+
+      const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `katalog_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('✅ CSV exportováno', 'success');
+    }
+
+    // ============================================================
+    // BATCH IMPORT
+    // ============================================================
+
+    async function batchImport() {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        const files = [];
+
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file' && entry.name.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+            const file = await entry.getFile();
+            if (file.size > 10000) { // Skip small files
+              files.push(file);
+            }
+          }
+        }
+
+        if (files.length === 0) {
+          showToast('⚠️ Žádné obrázky nenalezeny', 'error');
+          return;
+        }
+
+        showLoading(true);
+
+        for (const file of files) {
+          const uid = generateUID();
+          
+          // Try to parse metadata from filename
+          const baseName = file.name.replace(/\.[^/.]+$/, '');
+          const parts = baseName.split('_');
+          
+          const city = parts[0] || 'Neznámé';
+          const country = parts[1] || 'ČR';
+          const year = parts[2] ? parseInt(parts[2]) : null;
+
+          const imageFrontPath = await copyImage(file, uid, 'front', { city, country, year });
+          const thumbnail = await resizeImage(file, 400);
+          await saveThumbnail(imageFrontPath, thumbnail);
+
+          const item = {
+            uid,
+            imageFrontPath,
+            imageBackPath: null,
+            title: generateTitle(city, country, year),
+            city,
+            country,
+            year,
+            category: null,
+            tags: [],
+            notes: '',
+            publisher: '',
+            condition: '',
+            purchasePrice: '',
+            createdAt: timestamp(),
+            history: [
+              {
+                timestamp: timestamp(),
+                action: 'Dávkově importováno'
+              }
+            ]
+          };
+
+          state.catalog.push(item);
+        }
+
+        await saveCatalog();
+        applyFilters();
+        showToast(`✅ Importováno ${files.length} pohlednic`, 'success');
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          showToast('❌ Chyba při importu', 'error');
+          console.error(error);
+        }
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+
+    function generateUID() {
+      const maxUid = state.catalog.reduce((max, item) => {
+        const num = parseInt(item.uid.replace('P', ''));
+        return num > max ? num : max;
+      }, 0);
+
+      return 'P' + String(maxUid + 1).padStart(6, '0');
+    }
+
+    function generateTitle(city, country, year) {
+      return year 
+        ? `${city}, ${country} (${year})`
+        : `${city}, ${country}`;
+    }
+
+    function generateImagePath(uid, side, metadata) {
+      const citySlug = metadata.city.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      const countrySlug = metadata.country.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      const yearPart = metadata.year ? `_${metadata.year}` : '';
+      const sideSuffix = side === 'back' ? '_back' : '_front';
+      return `${uid}_${citySlug}_${countrySlug}${yearPart}${sideSuffix}.jpg`;
+    }
+
+    function timestamp() {
+      const now = new Date();
+      return now.toLocaleString('cs-CZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    // ============================================================
+    // THEME TOGGLE
+    // ============================================================
+
+    function applyTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      const themeBtn = document.getElementById('themeToggle');
+      themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.body.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+    }
+
+    // ============================================================
+    // LIGHTBOX
+    // ============================================================
+
+    async function openLightbox(imagePath) {
+      if (!state.dirHandle || !imagePath) return;
+      
+      try {
+        showLoading(true);
+        const imagesDir = await state.dirHandle.getDirectoryHandle('obrazky');
+        const fileName = imagePath.split('/').pop();
+        const fileHandle = await imagesDir.getFileHandle(fileName);
+        const file = await fileHandle.getFile();
+        const url = URL.createObjectURL(file);
+        
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImage');
+        lightboxImg.src = url;
+        lightbox.classList.add('active');
+        
+        // Store URL for cleanup
+        lightbox.dataset.currentUrl = url;
+        
+        showLoading(false);
+      } catch (error) {
+        console.error('Error opening lightbox:', error);
+        showToast('❌ Chyba při načítání obrázku', 'error');
+        showLoading(false);
+      }
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImage');
+      
+      // Revoke object URL
+      if (lightbox.dataset.currentUrl) {
+        URL.revokeObjectURL(lightbox.dataset.currentUrl);
+        delete lightbox.dataset.currentUrl;
+      }
+      
+      lightbox.classList.remove('active');
+      lightboxImg.src = '';
+    }
+
+    // ============================================================
+    // BATCH MODE
+    // ============================================================
+
+    function toggleBatchMode() {
+      state.batchMode = !state.batchMode;
+      state.selectedItems.clear();
+      
+      if (state.batchMode) {
+        // Enter batch mode
+        document.getElementById('btnBatchMode').textContent = '✖️ Ukončit výběr';
+        document.getElementById('batchActionsBar').classList.remove('hidden');
+        document.getElementById('fabAdd').classList.add('hidden');
+        document.getElementById('btnSave').classList.add('hidden');
+        document.getElementById('btnExportPDF').classList.add('hidden');
+        document.getElementById('btnExportCSV').classList.add('hidden');
+        document.getElementById('btnBatchImport').classList.add('hidden');
+        renderGallery(); // Re-render to add checkboxes
+      } else {
+        exitBatchMode();
+      }
+    }
+
+    function exitBatchMode() {
+      state.batchMode = false;
+      state.selectedItems.clear();
+      document.getElementById('btnBatchMode').textContent = '☑️ Hromadný výběr';
+      document.getElementById('batchActionsBar').classList.add('hidden');
+      document.getElementById('fabAdd').classList.remove('hidden');
+      document.getElementById('btnSave').classList.remove('hidden');
+      document.getElementById('btnExportPDF').classList.remove('hidden');
+      document.getElementById('btnExportCSV').classList.remove('hidden');
+      document.getElementById('btnBatchImport').classList.remove('hidden');
+      renderGallery(); // Re-render to remove checkboxes
+    }
+
+    function selectAllBatch() {
+      state.filteredCatalog.forEach(item => {
+        state.selectedItems.add(item.uid);
+      });
+      updateBatchUI();
+    }
+
+    function deselectAllBatch() {
+      state.selectedItems.clear();
+      updateBatchUI();
+    }
+
+    function updateBatchUI() {
+      const count = state.selectedItems.size;
+      document.getElementById('batchCount').textContent = `${count} vybráno`;
+      
+      // Update checkboxes
+      document.querySelectorAll('.postcard-checkbox').forEach(checkbox => {
+        const uid = checkbox.dataset.uid;
+        checkbox.checked = state.selectedItems.has(uid);
+      });
+    }
+
+    function handleBatchCardClick(uid) {
+      if (state.selectedItems.has(uid)) {
+        state.selectedItems.delete(uid);
+      } else {
+        state.selectedItems.add(uid);
+      }
+      updateBatchUI();
+    }
+
+    async function batchDelete() {
+      if (state.selectedItems.size === 0) {
+        showToast('⚠️ Nevybrána žádná pohlednice', 'error');
+        return;
+      }
+      
+      const count = state.selectedItems.size;
+      if (!confirm(`Opravdu smazat ${count} vybraných pohlednic? Tato akce je nevratná!`)) {
+        return;
+      }
+      
+      try {
+        showLoading(true);
+        
+        // Delete images
+        const imagesDir = await state.dirHandle.getDirectoryHandle('obrazky');
+        for (const uid of state.selectedItems) {
+          const item = state.catalog.find(i => i.uid === uid);
+          if (!item) continue;
+          
+          try {
+            if (item.imageFrontPath) {
+              const frontName = item.imageFrontPath.split('/').pop();
+              await imagesDir.removeEntry(frontName);
+            }
+            if (item.imageBackPath) {
+              const backName = item.imageBackPath.split('/').pop();
+              await imagesDir.removeEntry(backName);
+            }
+          } catch (err) {
+            console.warn('Error deleting image:', err);
+          }
+        }
+        
+        // Remove from catalog
+        state.catalog = state.catalog.filter(item => !state.selectedItems.has(item.uid));
+        
+        await saveCatalog();
+        exitBatchMode();
+        
+        showToast(`✅ Smazáno ${count} pohlednic`, 'success');
+      } catch (error) {
+        console.error('Batch delete error:', error);
+        showToast('❌ Chyba při mazání', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function openBatchCategoryModal() {
+      if (state.selectedItems.size === 0) {
+        showToast('⚠️ Nevybrána žádná pohlednice', 'error');
+        return;
+      }
+      
+      document.getElementById('batchCategoryCount').textContent = state.selectedItems.size;
+      document.getElementById('batchCategoryModal').showModal();
+    }
+
+    async function submitBatchCategory() {
+      const category = document.querySelector('input[name="batchCategory"]:checked')?.value;
+      
+      if (!category) {
+        showToast('⚠️ Vyber kategorii', 'error');
+        return;
+      }
+      
+      try {
+        showLoading(true);
+        
+        for (const uid of state.selectedItems) {
+          const item = state.catalog.find(i => i.uid === uid);
+          if (item) {
+            item.category = category;
+            item.history.push({
+              timestamp: timestamp(),
+              action: `Změna kategorie na: ${getPeriod(category).label}`
+            });
+          }
+        }
+        
+        await saveCatalog();
+        document.getElementById('batchCategoryModal').close();
+        exitBatchMode();
+        
+        showToast(`✅ Kategorie změněna pro ${state.selectedItems.size} pohlednic`, 'success');
+      } catch (error) {
+        console.error('Batch category error:', error);
+        showToast('❌ Chyba při změně kategorie', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function openBatchTagsModal() {
+      if (state.selectedItems.size === 0) {
+        showToast('⚠️ Nevybrána žádná pohlednice', 'error');
+        return;
+      }
+      
+      document.getElementById('batchTagsCount').textContent = state.selectedItems.size;
+      document.getElementById('batchTagsInput').value = '';
+      document.getElementById('batchTagsModal').showModal();
+    }
+
+    async function submitBatchTags() {
+      const action = document.getElementById('batchTagsAction').value;
+      const tagsInput = document.getElementById('batchTagsInput').value.trim();
+      
+      if (!tagsInput) {
+        showToast('⚠️ Zadej tagy', 'error');
+        return;
+      }
+      
+      const tags = tagsInput.split(',').map(t => t.trim()).filter(t => t);
+      
+      if (tags.length === 0) {
+        showToast('⚠️ Zadej platné tagy', 'error');
+        return;
+      }
+      
+      try {
+        showLoading(true);
+        
+        for (const uid of state.selectedItems) {
+          const item = state.catalog.find(i => i.uid === uid);
+          if (!item) continue;
+          
+          if (action === 'add') {
+            // Add tags
+            tags.forEach(tag => {
+              if (!item.tags.includes(tag)) {
+                item.tags.push(tag);
+              }
+            });
+            item.history.push({
+              timestamp: timestamp(),
+              action: `Přidány tagy: ${tags.join(', ')}`
+            });
+          } else {
+            // Remove tags
+            item.tags = item.tags.filter(t => !tags.includes(t));
+            item.history.push({
+              timestamp: timestamp(),
+              action: `Odebrány tagy: ${tags.join(', ')}`
+            });
+          }
+        }
+        
+        await saveCatalog();
+        document.getElementById('batchTagsModal').close();
+        exitBatchMode();
+        
+        const actionText = action === 'add' ? 'přidány' : 'odebrány';
+        showToast(`✅ Tagy ${actionText} pro ${state.selectedItems.size} pohlednic`, 'success');
+      } catch (error) {
+        console.error('Batch tags error:', error);
+        showToast('❌ Chyba při úpravě tagů', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // ============================================================
+    // STATISTICS DASHBOARD
+    // ============================================================
+
+    function openStatsModal() {
+      calculateAndRenderStats();
+      document.getElementById('statsModal').showModal();
+    }
+
+    function calculateAndRenderStats() {
+      const catalog = state.catalog;
+      const statsContent = document.getElementById('statsContent');
+      
+      if (catalog.length === 0) {
+        statsContent.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Katalog je prázdný</p>';
+        return;
+      }
+      
+      // Calculate statistics
+      const total = catalog.length;
+      const countries = {};
+      const tags = {};
+      const categories = { pre1945: 0, communist: 0, post1989: 0 };
+      const years = {};
+      
+      catalog.forEach(item => {
+        // Countries
+        if (item.country) {
+          countries[item.country] = (countries[item.country] || 0) + 1;
+        }
+        
+        // Tags
+        item.tags.forEach(tag => {
+          tags[tag] = (tags[tag] || 0) + 1;
+        });
+        
+        // Categories
+        if (item.category) {
+          categories[item.category]++;
+        }
+        
+        // Years
+        if (item.year) {
+          years[item.year] = (years[item.year] || 0) + 1;
+        }
+      });
+      
+      // Sort and get top 15
+      const topCountries = Object.entries(countries).sort((a, b) => b[1] - a[1]).slice(0, 15);
+      const topTags = Object.entries(tags).sort((a, b) => b[1] - a[1]).slice(0, 15);
+      const topYears = Object.entries(years).sort((a, b) => b[1] - a[1]).slice(0, 15);
+      
+      // Render HTML
+      let html = `
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-value">${total}</div>
+            <div class="stat-card-label">Celkem pohlednic</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-value">${Object.keys(countries).length}</div>
+            <div class="stat-card-label">Zemí</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-value">${Object.keys(tags).length}</div>
+            <div class="stat-card-label">Tagů</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-value">${Object.keys(years).length}</div>
+            <div class="stat-card-label">Ročníků</div>
+          </div>
+        </div>
+        
+        <div class="stats-section">
+          <div class="stats-section-title">📂 Kategorie</div>
+          ${createStatBar('🔵 Do 1945', categories.pre1945, total)}
+          ${createStatBar('🔴 1945-1989', categories.communist, total)}
+          ${createStatBar('🟢 Po 1989', categories.post1989, total)}
+        </div>
+      `;
+      
+      if (topCountries.length > 0) {
+        html += `
+          <div class="stats-section">
+            <div class="stats-section-title">🌍 Top 15 zemí</div>
+            ${topCountries.map(([name, count]) => createStatBar(name, count, total)).join('')}
+          </div>
+        `;
+      }
+      
+      if (topTags.length > 0) {
+        html += `
+          <div class="stats-section">
+            <div class="stats-section-title">🏷️ Top 15 tagů</div>
+            ${topTags.map(([name, count]) => createStatBar(name, count, total)).join('')}
+          </div>
+        `;
+      }
+      
+      if (topYears.length > 0) {
+        html += `
+          <div class="stats-section">
+            <div class="stats-section-title">📅 Top 15 ročníků</div>
+            ${topYears.map(([year, count]) => createStatBar(year, count, total)).join('')}
+          </div>
+        `;
+      }
+      
+      statsContent.innerHTML = html;
+    }
+
+    function createStatBar(name, count, total) {
+      const percentage = Math.round((count / total) * 100);
+      return `
+        <div class="stat-bar-item">
+          <div class="stat-bar-label">
+            <span class="stat-bar-name">${name}</span>
+            <span class="stat-bar-value">${count} (${percentage}%)</span>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill" style="width: ${percentage}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // TAG MANAGER
+    // ============================================================
+
+    function openTagManagerModal() {
+      renderTagManagerList();
+      document.getElementById('tagManagerModal').showModal();
+    }
+
+    function renderTagManagerList(filter = '') {
+      const tagsList = document.getElementById('tagManagerList');
+      
+      // Collect all tags with counts
+      const tagsMap = {};
+      state.catalog.forEach(item => {
+        item.tags.forEach(tag => {
+          tagsMap[tag] = (tagsMap[tag] || 0) + 1;
+        });
+      });
+      
+      // Convert to array and sort alphabetically
+      let tagsArray = Object.entries(tagsMap).sort((a, b) => a[0].localeCompare(b[0]));
+      
+      // Apply filter
+      if (filter) {
+        const filterLower = filter.toLowerCase();
+        tagsArray = tagsArray.filter(([tag]) => tag.toLowerCase().includes(filterLower));
+      }
+      
+      if (tagsArray.length === 0) {
+        tagsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Žádné tagy</p>';
+        return;
+      }
+      
+      // Render tags
+      const html = tagsArray.map(([tag, count]) => `
+        <div class="tag-item">
+          <div class="tag-info">
+            <span class="tag-name">${tag}</span>
+            <span class="tag-count">${count}</span>
+          </div>
+          <div class="tag-actions">
+            <button class="btn-icon" onclick="promptRenameTag('${tag.replace(/'/g, "\\\'")}')" title="Přejmenovat">✏️</button>
+            <button class="btn-icon" onclick="promptDeleteTag('${tag.replace(/'/g, "\\\'")}')" title="Smazat">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+      
+      tagsList.innerHTML = html;
+    }
+
+    function filterTagManagerList() {
+      const filter = document.getElementById('tagManagerSearch').value;
+      renderTagManagerList(filter);
+    }
+
+    function promptRenameTag(oldTag) {
+      const newTag = prompt(`Přejmenovat tag "${oldTag}" na:`, oldTag);
+      
+      if (!newTag || newTag.trim() === '' || newTag === oldTag) {
+        return;
+      }
+      
+      renameTag(oldTag, newTag.trim());
+    }
+
+    async function renameTag(oldName, newName) {
+      try {
+        showLoading(true);
+        
+        let changedCount = 0;
+        state.catalog.forEach(item => {
+          const index = item.tags.indexOf(oldName);
+          if (index !== -1) {
+            item.tags[index] = newName;
+            changedCount++;
+            item.history.push({
+              timestamp: timestamp(),
+              action: `Tag přejmenován: "${oldName}" → "${newName}"`
+            });
+          }
+        });
+        
+        await saveCatalog();
+        renderTagManagerList();
+        
+        showToast(`✅ Tag přejmenován ve ${changedCount} pohlednicích`, 'success');
+      } catch (error) {
+        console.error('Rename tag error:', error);
+        showToast('❌ Chyba při přejmenování tagu', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function promptDeleteTag(tag) {
+      if (!confirm(`Opravdu smazat tag "${tag}" ze všech pohlednic?`)) {
+        return;
+      }
+      
+      deleteTag(tag);
+    }
+
+    async function deleteTag(tagName) {
+      try {
+        showLoading(true);
+        
+        let changedCount = 0;
+        state.catalog.forEach(item => {
+          const index = item.tags.indexOf(tagName);
+          if (index !== -1) {
+            item.tags.splice(index, 1);
+            changedCount++;
+            item.history.push({
+              timestamp: timestamp(),
+              action: `Tag odebrán: "${tagName}"`
+            });
+          }
+        });
+        
+        await saveCatalog();
+        renderTagManagerList();
+        
+        showToast(`✅ Tag odstraněn z ${changedCount} pohlednic`, 'success');
+      } catch (error) {
+        console.error('Delete tag error:', error);
+        showToast('❌ Chyba při mazání tagu', 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+      toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+      
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingOverlay').classList.toggle('hidden', !show);
+    }
+
+    // ============================================================
+    // PDF EXPORT
+    // ============================================================
+
+    /**
+     * Otevře PDF Export modal a inicializuje hodnoty
+     */
+    function openPdfExportModal() {
+      const modal = document.getElementById('pdfExportModal');
+      
+      // Aktualizuj počty
+      document.getElementById('pdfCountAll').textContent = state.catalog.length;
+      document.getElementById('pdfCountFiltered').textContent = state.filteredCatalog.length;
+      document.getElementById('pdfCountSelected').textContent = state.selectedItems.size;
+      
+      // Povolíme/zakážeme možnost "vybrané položky"
+      const selectedOption = document.getElementById('pdfOptionSelected');
+      const selectedRadio = selectedOption.querySelector('input');
+      if (state.selectedItems.size > 0) {
+        selectedRadio.disabled = false;
+        selectedOption.style.opacity = '1';
+      } else {
+        selectedRadio.disabled = true;
+        selectedOption.style.opacity = '0.5';
+      }
+      
+      // Inicializuj event listenery pro obrázky
+      const includeImagesCheckbox = document.getElementById('pdfIncludeImages');
+      const imageSizeWrapper = document.getElementById('pdfImageSizeWrapper');
+      const frontOnlyCheckbox = document.getElementById('pdfFrontOnly');
+      
+      includeImagesCheckbox.addEventListener('change', () => {
+        imageSizeWrapper.style.display = includeImagesCheckbox.checked ? 'flex' : 'none';
+        frontOnlyCheckbox.closest('.pdf-checkbox-option').style.display = includeImagesCheckbox.checked ? 'flex' : 'none';
+      });
+      
+      // Layout change handler
+      const layoutSelect = document.getElementById('pdfLayout');
+      layoutSelect.addEventListener('change', () => {
+        const includeImagesOption = includeImagesCheckbox.closest('.pdf-checkbox-option');
+        if (layoutSelect.value === 'list') {
+          includeImagesOption.style.display = 'none';
+          imageSizeWrapper.style.display = 'none';
+          frontOnlyCheckbox.closest('.pdf-checkbox-option').style.display = 'none';
+        } else {
+          includeImagesOption.style.display = 'flex';
+          if (includeImagesCheckbox.checked) {
+            imageSizeWrapper.style.display = 'flex';
+            frontOnlyCheckbox.closest('.pdf-checkbox-option').style.display = 'flex';
+          }
+        }
+      });
+      
+      modal.showModal();
+    }
+
+    /**
+     * Získá nastavení z PDF Export modalu
+     */
+    function getPdfExportOptions() {
+      const selectedItemsRadio = document.querySelector('input[name="pdf-items"]:checked').value;
+      
+      let items = [];
+      if (selectedItemsRadio === 'all') {
+        items = [...state.catalog];
+      } else if (selectedItemsRadio === 'filtered') {
+        items = [...state.filteredCatalog];
+      } else if (selectedItemsRadio === 'selected') {
+        items = state.catalog.filter(item => state.selectedItems.has(item.uid));
+      }
+      
+      const sortBy = document.getElementById('pdfSortBy').value;
+      items = sortPdfItems(items, sortBy);
+      
+      return {
+        items: items,
+        includeImages: document.getElementById('pdfIncludeImages').checked && document.getElementById('pdfLayout').value !== 'list',
+        imageSize: document.getElementById('pdfImageSize').value,
+        frontOnly: document.getElementById('pdfFrontOnly').checked,
+        includeNotes: document.getElementById('pdfIncludeNotes').checked,
+        includeTechnical: document.getElementById('pdfIncludeTechnical').checked,
+        layout: document.getElementById('pdfLayout').value,
+        sortBy: sortBy,
+        orientation: document.getElementById('pdfOrientation').value
+      };
+    }
+
+    /**
+     * Seřadí položky podle zvoleného kritéria
+     */
+    function sortPdfItems(items, sortBy) {
+      const sorted = [...items];
+      
+      switch(sortBy) {
+        case 'city':
+          return sorted.sort((a, b) => (a.city || '').localeCompare(b.city || '', 'cs'));
+        case 'country':
+          return sorted.sort((a, b) => (a.country || '').localeCompare(b.country || '', 'cs'));
+        case 'year':
+          return sorted.sort((a, b) => {
+            const yearA = parseInt(a.year) || 9999;
+            const yearB = parseInt(b.year) || 9999;
+            return yearA - yearB;
+          });
+        case 'category':
+          const catOrder = { pre1945: 0, communist: 1, post1989: 2 };
+          return sorted.sort((a, b) => {
+            return (catOrder[a.category] || 3) - (catOrder[b.category] || 3);
+          });
+        default:
+          return sorted;
+      }
+    }
+
+    /**
+     * Ukáže progress overlay
+     */
+    function showPdfProgress(show, status = '', percent = 0) {
+      const overlay = document.getElementById('pdfProgressOverlay');
+      overlay.classList.toggle('hidden', !show);
+      
+      if (show) {
+        document.getElementById('pdfProgressStatus').textContent = status;
+        document.getElementById('pdfProgressFill').style.width = percent + '%';
+        document.getElementById('pdfProgressPercent').textContent = Math.round(percent) + '%';
+      }
+    }
+
+    /**
+     * Načte obrázek z File System API a převede na Base64
+     */
+    async function loadImageAsBase64(imagePath, maxWidth) {
+      try {
+        console.log(`[PDF] Loading image: ${imagePath}`);
+        
+        // Nejdříve zkus načíst z IndexedDB cache
+        const cachedData = await getThumbnail(imagePath);
+        if (cachedData) {
+          console.log(`[PDF] Using cached image from IndexedDB`);
+          return cachedData;
+        }
+        
+        if (!state.dirHandle) {
+          console.warn('[PDF] No dirHandle available');
+          return null;
+        }
+        
+        // Rozdělíme cestu
+        const parts = imagePath.split('/');
+        const folderName = parts[0]; // "obrazky"
+        const fileName = parts[1];
+        
+        // Získáme handle složky obrazky
+        const obrazkyHandle = await state.dirHandle.getDirectoryHandle(folderName, { create: false });
+        const fileHandle = await obrazkyHandle.getFileHandle(fileName, { create: false });
+        const file = await fileHandle.getFile();
+        
+        console.log(`[PDF] File loaded: ${file.name}, size: ${file.size}`);
+        
+        // Načteme soubor jako data URL
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          
+          reader.onload = (e) => {
+            const img = new Image();
+            
+            img.onload = () => {
+              console.log(`[PDF] Image loaded: ${img.width}x${img.height}`);
+              
+              // Vytvoříme canvas pro změnu velikosti
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              
+              // Zachováme aspect ratio
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#FFFFFF'; // Bílé pozadí
+              ctx.fillRect(0, 0, width, height);
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+              console.log(`[PDF] Canvas converted, data length: ${dataUrl.length}`);
+              resolve(dataUrl);
+            };
+            
+            img.onerror = (err) => {
+              console.error('[PDF] Image load error:', err);
+              resolve(null);
+            };
+            
+            img.src = e.target.result;
+          };
+          
+          reader.onerror = (err) => {
+            console.error('[PDF] FileReader error:', err);
+            resolve(null);
+          };
+          
+          reader.readAsDataURL(file);
+        });
+        
+      } catch (error) {
+        console.error('[PDF] Error loading image:', error);
+        return null;
+      }
+    }
+
+    /**
+     * Alternativní funkce - načte obrázek z IndexedDB přímo podle cesty
+     */
+    async function loadImageFromGallery(uid, side) {
+      try {
+        // Zkusíme sestavit cestu k obrázku podle UID
+        const imagePath = side === 'front' 
+          ? `obrazky/${uid}_predni.jpg`
+          : `obrazky/${uid}_zadni.jpg`;
+        
+        console.log(`[PDF Fallback] Trying to load from IndexedDB: ${imagePath}`);
+        
+        // Zkus načíst z IndexedDB
+        const cachedData = await getThumbnail(imagePath);
+        if (cachedData) {
+          console.log(`[PDF Fallback] Found in IndexedDB cache`);
+          return cachedData;
+        }
+        
+        console.warn(`[PDF Fallback] Not found in cache: ${imagePath}`);
+        return null;
+      } catch (error) {
+        console.error('[PDF Fallback] Error:', error);
+        return null;
+      }
+    }
+
+    /**
+     * Generuje PDF dokument
+     */
+    async function generatePdf(options, forPreview = false) {
+      const { jsPDF } = window.jspdf;
+      
+      const doc = new jsPDF({
+        orientation: options.orientation,
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (2 * margin);
+      
+      let currentY = margin;
+      let pageNumber = 1;
+      
+      // Pomocná funkce pro převod českých znaků
+      function cleanText(text) {
+        if (!text) return '';
+        return text
+          .replace(/á/g, 'a').replace(/Á/g, 'A')
+          .replace(/č/g, 'c').replace(/Č/g, 'C')
+          .replace(/ď/g, 'd').replace(/Ď/g, 'D')
+          .replace(/é/g, 'e').replace(/É/g, 'E')
+          .replace(/ě/g, 'e').replace(/Ě/g, 'E')
+          .replace(/í/g, 'i').replace(/Í/g, 'I')
+          .replace(/ň/g, 'n').replace(/Ň/g, 'N')
+          .replace(/ó/g, 'o').replace(/Ó/g, 'O')
+          .replace(/ř/g, 'r').replace(/Ř/g, 'R')
+          .replace(/š/g, 's').replace(/Š/g, 'S')
+          .replace(/ť/g, 't').replace(/Ť/g, 'T')
+          .replace(/ú/g, 'u').replace(/Ú/g, 'U')
+          .replace(/ů/g, 'u').replace(/Ů/g, 'U')
+          .replace(/ý/g, 'y').replace(/Ý/g, 'Y')
+          .replace(/ž/g, 'z').replace(/Ž/g, 'Z');
+      }
+      
+      // Helper funkce pro přidání nové stránky
+      function addNewPage() {
+        doc.addPage();
+        currentY = margin;
+        pageNumber++;
+        addPageNumber();
+      }
+      
+      // Helper funkce pro číslo stránky
+      function addPageNumber() {
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Strana ${pageNumber}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        doc.text(cleanText('Vytvoreno pomoci Katalogu Pohlednic v2.9.0'), margin, pageHeight - 10);
+        doc.setTextColor(0);
+      }
+      
+      // Titulní strana
+      showPdfProgress(true, cleanText('Vytvářím titulni stranu...'), 5);
+      
+      doc.setFontSize(28);
+      doc.setFont('helvetica', 'bold');
+      doc.text(cleanText('Katalog Pohlednic'), pageWidth / 2, 50, { align: 'center' });
+      
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.text(cleanText(`Pocet polozek: ${options.items.length}`), pageWidth / 2, 65, { align: 'center' });
+      
+      const today = new Date();
+      const dateStr = `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(cleanText(`Vygenerovano: ${dateStr}`), pageWidth / 2, 75, { align: 'center' });
+      doc.setTextColor(0);
+      
+      // Statistiky
+      const stats = calculatePdfStatistics(options.items);
+      let statsY = 95;
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Statistiky', pageWidth / 2, statsY, { align: 'center' });
+      statsY += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Kategorie:', margin, statsY);
+      statsY += 7;
+      doc.setTextColor(59, 130, 246);
+      doc.text(`  Do 1945: ${stats.pre1945}`, margin + 5, statsY);
+      statsY += 6;
+      doc.setTextColor(239, 68, 68);
+      doc.text(`  1945-1989: ${stats.communist}`, margin + 5, statsY);
+      statsY += 6;
+      doc.setTextColor(16, 185, 129);
+      doc.text(`  Po 1989: ${stats.post1989}`, margin + 5, statsY);
+      statsY += 10;
+      doc.setTextColor(0);
+      
+      if (stats.topCountries.length > 0) {
+        doc.text(cleanText('Top 5 zemi:'), margin, statsY);
+        statsY += 7;
+        stats.topCountries.slice(0, 5).forEach(([country, count]) => {
+          doc.text(cleanText(`  ${country}: ${count}`), margin + 5, statsY);
+          statsY += 6;
+        });
+      }
+      
+      addPageNumber();
+      addNewPage();
+      
+      // Velikost obrázku
+      const maxImageWidth = options.imageSize === 'large' ? 800 : 
+                           options.imageSize === 'medium' ? 900 : 600;
+      
+      // Procházej položky podle layoutu
+      if (options.layout === 'table') {
+        await generateTableLayout(doc, options, maxImageWidth);
+      } else if (options.layout === 'list') {
+        await generateListLayout(doc, options);
+      } else {
+        // Cards layout (default)
+        await generateCardsLayout(doc, options, maxImageWidth);
+      }
+      
+      showPdfProgress(true, cleanText('Dokoncuji PDF...'), 95);
+      
+      return doc;
+      
+      // ===== LAYOUT FUNKCE =====
+      
+      
+async function generateCardsLayout(doc, options, maxImageWidth) {
+  // Helper: zjisti prirozene rozmery obrazku z dataURL
+  async function getImageSize(dataUrl){
+    return await new Promise((resolve)=>{ const im = new Image(); im.onload=()=>resolve({w: im.naturalWidth||im.width, h: im.naturalHeight||im.height}); im.src = dataUrl; });
+  }
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const gutter = 8;
+  const colW = (pageWidth - margin*2 - gutter) / 2;
+  const cardH = 120; // mm
+  const imgH  = 70;  // mm
+
+  let x = margin;
+  let y = margin;
+
+  for (let i = 0; i < options.items.length; i++) {
+    const item = options.items[i];
+    const percent = ((i + 1) / options.items.length) * 90 + 5;
+    showPdfProgress(true, cleanText(`Zpracovavam pohlednici ${i + 1} z ${options.items.length}...`), percent);
+
+    if (y + cardH > pageHeight - margin) {
+      addNewPage();
+      x = margin;
+      y = margin;
+    }
+
+    doc.setDrawColor(220,220,220);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, colW, cardH, 2, 2);
+
+    if (options.includeImages && item.imageFrontPath) {
+      try {
+        const dataUrl = await loadImageAsBase64(item.imageFrontPath, maxImageWidth);
+        const frameW = colW - 12; // dostupny prostor v mm
+        const frameH = 70;        // dostupna vyska v mm
+        const imgX0 = x + 6;
+        const imgY0 = y + 6;
+        if (dataUrl) {
+          const sz = await getImageSize(dataUrl);
+          const ratio = sz.w / Math.max(1, sz.h);
+          const frameRatio = frameW / frameH;
+          let drawW, drawH;
+          if (ratio >= frameRatio) { // obrazek je sirsi -> prilepit na sirku
+            drawW = frameW;
+            drawH = frameW / Math.max(0.0001, ratio);
+          } else { // obrazek je vyssi -> prilepit na vysku
+            drawH = frameH;
+            drawW = frameH * ratio;
+          }
+          const dx = imgX0 + (frameW - drawW) / 2;
+          const dy = imgY0 + (frameH - drawH) / 2;
+          doc.addImage(dataUrl, 'JPEG', dx, dy, drawW, drawH);
+        } else { throw new Error('no image'); }
+      } catch(e) {
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.text(cleanText('(obrazek neni k dispozici)'), x + 6, y + 12);
+      }
+    }
+
+    let ty = y + 6 + 70 + 6;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text(cleanText(item.title || item.city || 'Bez nazvu'), x + 6, ty); ty += 6;
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const line1 = `${cleanText(item.city || '-')}, ${cleanText(item.country || '-')}${item.year ? ' • ' + item.year : ''}`;
+    doc.text(line1, x + 6, ty); ty += 5;
+
+    if (Array.isArray(item.tags) && item.tags.length) {
+      let tags = cleanText(item.tags.slice(0,6).join(', '));
+      if (tags.length > 60) tags = tags.slice(0,57) + '…';
+      doc.setTextColor(90);
+      doc.setFontSize(8);
+      doc.text(tags, x + 6, ty);
+      doc.setTextColor(0);
+      ty += 5;
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text(cleanText(item.uid || ''), x + colW - 6, y + cardH - 6, { align: 'right' });
+    doc.setTextColor(0);
+
+    if (x === margin) {
+      x = margin + colW + gutter;
+    } else {
+      x = margin;
+      y += cardH + gutter;
+    }
+  }
+}
+
+      
+      async function generateTableLayout(doc, options, maxImageWidth) {
+        // Připrav data pro tabulku
+        const tableData = [];
+        
+        for (let i = 0; i < options.items.length; i++) {
+          const item = options.items[i];
+          const percent = ((i + 1) / options.items.length) * 90 + 5;
+          showPdfProgress(true, cleanText(`Zpracovavam ${i + 1} z ${options.items.length}...`), percent);
+          
+          const row = [
+            cleanText(item.city || '-'),
+            cleanText(item.country || '-'),
+            item.year || '-',
+            cleanText(getCategoryText(item.category)),
+            getConditionStars(item.condition)
+          ];
+          
+          tableData.push(row);
+        }
+        
+        // Vytvoř tabulku pomocí autoTable
+        doc.autoTable({
+          styles: { fontSize: 9, cellPadding: 3, lineColor: [230,230,230], lineWidth: 0.2 },
+          headStyles: { fillColor: [34,34,34], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [248,248,248] },
+          head: [[cleanText('Mesto'), cleanText('Zeme'), 'Rok', 'Kategorie', 'Stav']],
+          body: tableData,
+          startY: currentY,
+          margin: { left: margin, right: margin },
+          styles: {
+            fontSize: 8,
+            cellPadding: 2,
+          },
+          headStyles: {
+            fillColor: [100, 100, 100],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+          },
+          alternateRowStyles: {
+            fillColor: [245, 245, 245]
+          },
+          didDrawPage: function(data) {
+            pageNumber = doc.internal.getNumberOfPages();
+            addPageNumber();
+          }
+        });
+      }
+      
+      async function generateListLayout(doc, options) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        for (let i = 0; i < options.items.length; i++) {
+          const item = options.items[i];
+          const percent = ((i + 1) / options.items.length) * 90 + 5;
+          showPdfProgress(true, cleanText(`Zpracovavam ${i + 1} z ${options.items.length}...`), percent);
+          
+          const lineHeight = 6;
+          
+          if (currentY + lineHeight > pageHeight - margin) {
+            addNewPage();
+          }
+          
+          let text = cleanText(`- ${item.city || 'Nezname'}, ${item.country || 'Nezname'}`);
+          if (item.year) text += ` (${item.year})`;
+          
+          doc.text(text, margin, currentY);
+          currentY += lineHeight;
+        }
+      }
+    }
+
+    /**
+     * Vypočítá statistiky pro PDF
+     */
+    function calculatePdfStatistics(items) {
+      const stats = {
+        pre1945: 0,
+        communist: 0,
+        post1989: 0,
+        topCountries: []
+      };
+      
+      const countries = {};
+      
+      items.forEach(item => {
+        // Kategorie
+        if (item.category === 'pre1945') stats.pre1945++;
+        else if (item.category === 'communist') stats.communist++;
+        else if (item.category === 'post1989') stats.post1989++;
+        
+        // Země
+        if (item.country) {
+          countries[item.country] = (countries[item.country] || 0) + 1;
+        }
+      });
+      
+      stats.topCountries = Object.entries(countries).sort((a, b) => b[1] - a[1]);
+      
+      return stats;
+    }
+
+    /**
+     * Získá text kategorie
+     */
+    function getCategoryText(category) {
+      switch(category) {
+        case 'pre1945': return 'Do 1945';
+        case 'communist': return '1945-1989';
+        case 'post1989': return 'Po 1989';
+        default: return 'Neznámé';
+      }
+    }
+
+    /**
+     * Získá barvu kategorie jako RGB
+     */
+    function getCategoryColor(category) {
+      switch(category) {
+        case 'pre1945': return [59, 130, 246]; // modrá
+        case 'communist': return [239, 68, 68]; // červená
+        case 'post1989': return [16, 185, 129]; // zelená
+        default: return [107, 114, 128]; // šedá
+      }
+    }
+
+    /**
+     * Získá text stavu
+     */
+    function getConditionText(condition) {
+      switch(condition) {
+        case 'mint': return 'Nový';
+        case 'excellent': return 'Velmi dobrý';
+        case 'good': return 'Dobrý';
+        case 'fair': return 'Průměrný';
+        case 'poor': return 'Špatný';
+        default: return 'Neznámý';
+      }
+    }
+
+    /**
+     * Získá hvězdičky pro stav
+     */
+    function getConditionStars(condition) {
+      switch(condition) {
+        case 'mint': return '★★★★★';
+        case 'excellent': return '★★★★';
+        case 'good': return '★★★';
+        case 'fair': return '★★';
+        case 'poor': return '★';
+        default: return '—';
+      }
+    }
+
+    /**
+     * Náhled PDF (otevře v novém okně)
+     */
+    async function previewPdf() {
+      try {
+        const options = getPdfExportOptions();
+        
+        if (options.items.length === 0) {
+          showToast('❌ Žádné položky k exportu', 'error');
+          return;
+        }
+        
+        document.getElementById('pdfExportModal').close();
+        showPdfProgress(true, 'Připravuji náhled...', 0);
+        
+        const doc = await generatePdf(options, true);
+        
+        showPdfProgress(true, 'Otevírám náhled...', 100);
+        
+        // Otevři v novém okně
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, '_blank');
+        
+        setTimeout(() => {
+          showPdfProgress(false);
+          showToast('✅ Náhled PDF otevřen', 'success');
+        }, 500);
+        
+      } catch (error) {
+        console.error('PDF preview error:', error);
+        showPdfProgress(false);
+        showToast('❌ Chyba při vytváření náhledu: ' + error.message, 'error');
+      }
+    }
+
+    /**
+     * Stáhne PDF soubor
+     */
+    async function downloadPdf() {
+      try {
+        const options = getPdfExportOptions();
+        
+        if (options.items.length === 0) {
+          showToast('❌ Žádné položky k exportu', 'error');
+          return;
+        }
+        
+        document.getElementById('pdfExportModal').close();
+        showPdfProgress(true, 'Vytvářím PDF...', 0);
+        
+        const doc = await generatePdf(options, false);
+        
+        showPdfProgress(true, 'Stahuji PDF...', 100);
+        
+        // Vytvoř název souboru
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}_${String(today.getMonth() + 1).padStart(2, '0')}_${String(today.getDate()).padStart(2, '0')}`;
+        const filename = `katalog_pohlednic_${dateStr}.pdf`;
+        
+        // Stáhni
+        doc.save(filename);
+        
+        setTimeout(() => {
+          showPdfProgress(false);
+          showToast(`✅ PDF uloženo: ${filename}`, 'success');
+        }, 500);
+        
+      } catch (error) {
+        console.error('PDF download error:', error);
+        showPdfProgress(false);
+        showToast('❌ Chyba při vytváření PDF: ' + error.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
