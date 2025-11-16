@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostcardCollector</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header id="toolbar" class="toolbar"></header>
+    <div id="subtoolbar" class="subtoolbar"></div>
+    <div id="appMessage" class="app-message" role="status" aria-live="polite"></div>
+    <main class="content">
+      <section class="gallery-panel">
+        <div id="gallery" class="gallery-grid"></div>
+      </section>
+      <aside id="detail" class="detail-panel"></aside>
+    </main>
+  </div>
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <div class="lightbox-content">
+      <button type="button" id="lightboxCloseBtn" class="lightbox-close" aria-label="Zavřít náhled">&times;</button>
+      <div id="lightboxImageFrame" class="lightbox-image-frame image-frame" data-role="image-frame">
+        <img id="lightboxImage" src="" alt="Náhled pohlednice" data-role="preview-image">
+      </div>
+    </div>
+  </div>
+  <div id="postcard-modal" class="pc-modal pc-hidden" aria-hidden="true">
+    <div class="pc-modal-overlay"></div>
+    <div class="pc-modal-content" role="dialog" aria-modal="true" aria-labelledby="pc-modal-uid">
+      <header class="pc-modal-header">
+        <div class="pc-modal-id">
+          <span id="pc-modal-uid"></span>
+          <button id="pc-copy-uid" class="btn-ghost">📋 Kopírovat UID</button>
+        </div>
+        <div class="pc-modal-dates">
+          <span id="pc-created"></span>
+          <span id="pc-updated"></span>
+        </div>
+        <button id="pc-modal-close" class="pc-modal-close" aria-label="Zavřít detail">×</button>
+      </header>
+      <nav class="pc-tabs" aria-label="Detail pohlednice">
+        <button class="pc-tab pc-tab-active" data-tab="overview">📄 Přehled</button>
+        <button class="pc-tab" data-tab="edit">✏️ Editace</button>
+      </nav>
+      <div class="pc-tab-panels">
+        <div id="pc-tab-overview" class="pc-tab-panel pc-tab-panel-active"></div>
+        <div id="pc-tab-edit" class="pc-tab-panel"></div>
+      </div>
+      <footer class="pc-modal-footer">
+        <button id="pc-save" class="btn-primary">💾 Uložit změny</button>
+        <button id="pc-delete" class="btn-danger">🗑️ Smazat</button>
+      </footer>
+    </div>
+  </div>
+  <div id="bulk-edit-modal" class="bulk-modal pc-hidden" aria-hidden="true">
+    <div class="bulk-modal-overlay"></div>
+    <div class="bulk-modal-content" role="dialog" aria-modal="true" aria-labelledby="bulk-modal-title">
+      <header class="bulk-modal-header">
+        <h2 id="bulk-modal-title">Hromadná úprava</h2>
+        <button type="button" id="bulk-modal-close" class="bulk-modal-close" aria-label="Zavřít dialog">&times;</button>
+      </header>
+      <form id="bulk-edit-form" class="bulk-modal-body">
+        <div class="bulk-form-grid">
+          <label class="bulk-form-field">
+            <span>Kategorie</span>
+            <select name="category" class="select-input">
+              <option value="">Neměnit</option>
+              <option value="pre1945">Do roku 1945</option>
+              <option value="communist">1945–1989</option>
+              <option value="post1989">Po roce 1989</option>
+              <option value="other">Ostatní</option>
+            </select>
+          </label>
+          <label class="bulk-form-field">
+            <span>Město</span>
+            <input type="text" name="city" class="text-input" placeholder="Neměnit">
+          </label>
+          <label class="bulk-form-field">
+            <span>Země</span>
+            <input type="text" name="country" class="text-input" placeholder="Neměnit">
+          </label>
+          <label class="bulk-form-field">
+            <span>Rok / období</span>
+            <input type="text" name="year" class="text-input" placeholder="Neměnit">
+          </label>
+          <label class="bulk-form-field">
+            <span>Přidat tagy</span>
+            <input type="text" name="addTags" class="text-input" placeholder="oddělené čárkou">
+          </label>
+          <label class="bulk-form-field">
+            <span>Odebrat tagy</span>
+            <input type="text" name="removeTags" class="text-input" placeholder="oddělené čárkou">
+          </label>
+        </div>
+        <footer class="bulk-modal-actions">
+          <button type="button" class="btn-secondary" id="bulk-edit-cancel">Zrušit</button>
+          <button type="submit" class="btn-primary">Použít</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>
