@@ -514,6 +514,12 @@
       color: var(--text-primary);
     }
 
+    .form-help {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
     .form-input,
     .form-textarea,
     .form-select {
@@ -538,6 +544,36 @@
     .form-textarea {
       resize: vertical;
       min-height: 80px;
+    }
+
+    .filename-builder {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px dashed var(--border-color);
+      background: rgba(59, 130, 246, 0.06);
+      box-shadow: var(--shadow-sm);
+    }
+
+    [data-theme="dark"] .filename-builder {
+      background: rgba(59, 130, 246, 0.14);
+    }
+
+    .filename-builder-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .filename-builder select.form-input {
+      max-width: 180px;
+      flex: 0 0 auto;
+    }
+
+    .filename-builder .form-input[readonly] {
+      flex: 1 1 240px;
+      min-width: 220px;
     }
 
     .form-row {
@@ -1322,12 +1358,11 @@
     .lightbox {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 9999;
+      background: rgba(0, 0, 0, 0.86);
+      z-index: 2147483647;
       cursor: zoom-out;
     }
 
@@ -1349,6 +1384,8 @@
       max-height: 95vh;
       object-fit: contain;
       cursor: default;
+      filter: none;
+      -webkit-filter: none;
     }
 
     .lightbox-close {
@@ -1367,6 +1404,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    body.lightbox-open {
+      overflow: hidden;
+    }
+
+    body.lightbox-open .modal-backdrop,
+    body.lightbox-open .dialog-backdrop,
+    body.lightbox-open .overlay,
+    body.lightbox-open .backdrop,
+    body.lightbox-open [role="dialog"],
+    body.lightbox-open dialog,
+    body.lightbox-open .modal,
+    body.lightbox-open .dialog {
+      filter: none !important;
+      -webkit-filter: none !important;
+      backdrop-filter: none !important;
     }
 
     .lightbox-close:hover {
@@ -2036,6 +2090,22 @@
             <input type="file" id="editImageBackInput" accept="image/*" hidden>
           </div>
         </div>
+
+        <div class="filename-builder" id="filenameBuilderPanel">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="builtFilename">📄 Sestavit název souboru</label>
+            <div class="filename-builder-controls">
+              <select id="fileSideSelect" class="form-input">
+                <option value="front">Přední strana</option>
+                <option value="back">Zadní strana</option>
+              </select>
+              <button class="btn btn-secondary" type="button" id="btnBuildFilename">Sestavit</button>
+              <input class="form-input" id="builtFilename" type="text" readonly placeholder="UID_mesto_zeme_rok_front.jpg">
+              <button class="btn btn-primary" type="button" id="btnCopyFilename">Kopírovat</button>
+            </div>
+            <div class="form-help">Vzorec: <code>UID_mesto_zeme_rok_[front/back].jpg</code></div>
+          </div>
+        </div>
       </div>
 
       <!-- History Tab -->
@@ -2366,11 +2436,13 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       console.log(`📮 Katalog Pohlednic v${VERSION} - Modern Edition`);
-      
+
       // Initialize theme
       const savedTheme = localStorage.getItem('theme') || 'light';
       applyTheme(savedTheme);
-      
+
+      window.generateImageFilename = generateImageFilename;
+
       await initDB();
       setupEventListeners();
       checkFileSystemAPI();
@@ -2457,6 +2529,48 @@
           closeLightbox();
         }
       };
+
+      const buildFilenameBtn = document.getElementById('btnBuildFilename');
+      if (buildFilenameBtn) {
+        buildFilenameBtn.onclick = () => updateFilenameBuilder(true);
+      }
+
+      const copyFilenameBtn = document.getElementById('btnCopyFilename');
+      if (copyFilenameBtn) {
+        copyFilenameBtn.onclick = async () => {
+          const filename = updateFilenameBuilder(false);
+          if (!filename) {
+            showToast('⚠️ Nejprve doplň UID, město a zemi', 'warning');
+            return;
+          }
+
+          try {
+            await navigator.clipboard.writeText(filename);
+            showToast('📋 Název zkopírován do schránky', 'success');
+          } catch (error) {
+            console.error('Clipboard error:', error);
+            showToast('⚠️ Nepodařilo se zkopírovat název', 'warning');
+          }
+        };
+      }
+
+      const fileSideSelect = document.getElementById('fileSideSelect');
+      if (fileSideSelect) {
+        fileSideSelect.onchange = () => updateFilenameBuilder(false);
+      }
+
+      ['editUid', 'editCity', 'editCountry', 'editYear'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => updateFilenameBuilder(false));
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeLightbox();
+        }
+      });
     }
 
     // ============================================================
@@ -3016,6 +3130,8 @@
       document.getElementById('detailTitle').textContent = item.title || generateTitle(item.city, item.country, item.year);
       document.getElementById('detailUidChip').textContent = item.uid || '—';
 
+      resetFilenameBuilder();
+
       // Switch to overview tab
       switchTab('overview');
 
@@ -3090,6 +3206,64 @@
           backImg.src = thumbnail;
         }
       }
+    }
+
+    // ============================================================
+    // FILENAME BUILDER
+    // ============================================================
+
+    function getDetailInputValue(id) {
+      const el = document.getElementById(id);
+      return el && typeof el.value === 'string' ? el.value.trim() : '';
+    }
+
+    function getDetailTextContent(id) {
+      const el = document.getElementById(id);
+      return el && typeof el.textContent === 'string' ? el.textContent.trim() : '';
+    }
+
+    function computeDetailFilename(side) {
+      const uid = getDetailInputValue('editUid') || getDetailTextContent('detailUidChip');
+      const city = getDetailInputValue('editCity') || getDetailTextContent('overviewCity');
+      const country = getDetailInputValue('editCountry') || getDetailTextContent('overviewCountry');
+
+      let year = getDetailInputValue('editYear');
+      if (!year) {
+        const overviewYear = getDetailTextContent('overviewYear');
+        const yearMatch = overviewYear.match(/\d{3,4}/);
+        year = yearMatch ? yearMatch[0] : '';
+      }
+
+      return generateImageFilename(uid, city, country, year, side);
+    }
+
+    function updateFilenameBuilder(notify = false) {
+      const output = document.getElementById('builtFilename');
+      if (!output) return '';
+
+      const sideSelect = document.getElementById('fileSideSelect');
+      const side = sideSelect ? sideSelect.value : 'front';
+      const filename = computeDetailFilename(side);
+
+      output.value = filename;
+
+      if (notify) {
+        if (filename) {
+          showToast('🧩 Název souboru sestaven', 'success');
+        } else {
+          showToast('⚠️ Nejprve doplň UID, město a zemi', 'warning');
+        }
+      }
+
+      return filename;
+    }
+
+    function resetFilenameBuilder() {
+      const sideSelect = document.getElementById('fileSideSelect');
+      if (sideSelect) {
+        sideSelect.value = 'front';
+      }
+      updateFilenameBuilder(false);
     }
 
     function copyUid(uid) {
@@ -3462,17 +3636,50 @@
     }
 
     function generateTitle(city, country, year) {
-      return year 
+      return year
         ? `${city}, ${country} (${year})`
         : `${city}, ${country}`;
     }
 
-    function generateImagePath(uid, side, metadata) {
-      const citySlug = metadata.city.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      const countrySlug = metadata.country.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      const yearPart = metadata.year ? `_${metadata.year}` : '';
+    function slugify(text) {
+      if (!text) return '';
+
+      let normalized = text.toString();
+      if (typeof normalized.normalize === 'function') {
+        normalized = normalized.normalize('NFKD');
+      }
+
+      try {
+        normalized = normalized.replace(/\p{Diacritic}/gu, '');
+      } catch (error) {
+        normalized = normalized.replace(/[\u0300-\u036f]/g, '');
+      }
+
+      return normalized
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
+    }
+
+    function generateImageFilename(uid, city, country, year, side = 'front') {
+      if (!uid) return '';
+
+      const segments = [uid, slugify(city), slugify(country)].filter(Boolean);
+      const yearPart = year ? `_${year}` : '';
       const sideSuffix = side === 'back' ? '_back' : '_front';
-      return `${uid}_${citySlug}_${countrySlug}${yearPart}${sideSuffix}.jpg`;
+
+      return `${segments.join('_')}${yearPart}${sideSuffix}.jpg`;
+    }
+
+    function generateImagePath(uid, side, metadata) {
+      const safeMetadata = metadata || {};
+      return generateImageFilename(
+        uid,
+        safeMetadata.city,
+        safeMetadata.country,
+        safeMetadata.year,
+        side
+      );
     }
 
     function timestamp() {
@@ -3509,28 +3716,58 @@
     // ============================================================
 
     async function openLightbox(imagePath) {
-      if (!state.dirHandle || !imagePath) return;
-      
-      try {
-        showLoading(true);
-        const imagesDir = await state.dirHandle.getDirectoryHandle('obrazky');
-        const fileName = imagePath.split('/').pop();
-        const fileHandle = await imagesDir.getFileHandle(fileName);
-        const file = await fileHandle.getFile();
-        const url = URL.createObjectURL(file);
-        
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightboxImage');
+      if (!imagePath) return;
+
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImage');
+      const isExternalSource = /^https?:/i.test(imagePath) || imagePath.startsWith('data:');
+
+      if (!lightbox || !lightboxImg) {
+        if (isExternalSource) {
+          window.open(imagePath, '_blank');
+        }
+        return;
+      }
+
+      const showImage = (url, shouldRevoke = false) => {
+        if (lightbox.dataset.currentUrl && lightbox.dataset.shouldRevoke === 'true') {
+          URL.revokeObjectURL(lightbox.dataset.currentUrl);
+        }
+
+        if (shouldRevoke) {
+          lightbox.dataset.currentUrl = url;
+          lightbox.dataset.shouldRevoke = 'true';
+        } else {
+          delete lightbox.dataset.currentUrl;
+          delete lightbox.dataset.shouldRevoke;
+        }
+
         lightboxImg.src = url;
         lightbox.classList.add('active');
-        
-        // Store URL for cleanup
-        lightbox.dataset.currentUrl = url;
-        
-        showLoading(false);
+        document.body.classList.add('lightbox-open');
+      };
+
+      try {
+        if (state.dirHandle && !isExternalSource) {
+          showLoading(true);
+          const imagesDir = await state.dirHandle.getDirectoryHandle('obrazky');
+          const fileName = imagePath.split('/').pop();
+          const fileHandle = await imagesDir.getFileHandle(fileName);
+          const file = await fileHandle.getFile();
+          const url = URL.createObjectURL(file);
+          showImage(url, true);
+        } else if (isExternalSource) {
+          showImage(imagePath, false);
+        } else {
+          showToast('⚠️ Nejprve otevři katalogový adresář, aby bylo možné načíst obrázky.', 'warning');
+        }
       } catch (error) {
         console.error('Error opening lightbox:', error);
         showToast('❌ Chyba při načítání obrázku', 'error');
+        if (isExternalSource) {
+          window.open(imagePath, '_blank');
+        }
+      } finally {
         showLoading(false);
       }
     }
@@ -3538,15 +3775,18 @@
     function closeLightbox() {
       const lightbox = document.getElementById('lightbox');
       const lightboxImg = document.getElementById('lightboxImage');
-      
-      // Revoke object URL
-      if (lightbox.dataset.currentUrl) {
+      if (!lightbox || !lightboxImg) return;
+
+      if (lightbox.dataset.currentUrl && lightbox.dataset.shouldRevoke === 'true') {
         URL.revokeObjectURL(lightbox.dataset.currentUrl);
-        delete lightbox.dataset.currentUrl;
       }
-      
+
+      delete lightbox.dataset.currentUrl;
+      delete lightbox.dataset.shouldRevoke;
+
       lightbox.classList.remove('active');
       lightboxImg.src = '';
+      document.body.classList.remove('lightbox-open');
     }
 
     // ============================================================
